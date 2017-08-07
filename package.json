@@ -1,0 +1,28 @@
+{
+  "name": "highcharts-assembler",
+  "version": "1.0.0",
+  "description": "The official bundler for Highcharts JS.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/highcharts/highcharts-assembler.git"
+  },
+  "keywords": [
+    "highcharts",
+    "bundler"
+  ],
+  "author": "Jon Arild N�ygård",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/highcharts/highcharts-assembler/issues"
+  },
+  "homepage": "https://github.com/highcharts/highcharts-assembler#readme"
+}
