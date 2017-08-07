@@ -7,9 +7,15 @@
     "test": "test"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.24.1",
+    "chai": "^4.1.1",
+    "mocha": "^3.5.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babel-polyfill --compilers js:babel-register test/test.js"
   },
   "repository": {
     "type": "git",
@@ -19,7 +25,7 @@
     "highcharts",
     "bundler"
   ],
-  "author": "Jon Arild N�ygård",
+  "author": "Jon Arild Nygård",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/highcharts/highcharts-assembler/issues"
