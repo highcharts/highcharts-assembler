@@ -1,5 +1,6 @@
 'use strict';
 import './build.js';
+import './defaultOptions.js';
 import './dependencies.js';
 import './process.js';
 import './utilities.js';
