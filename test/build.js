@@ -1,14 +1,14 @@
 'use strict';
 import { expect } from 'chai';
-import build from '../src/build.js';
+import defaults from '../src/build.js';
 
 describe('build.js', () => {
-    it('export default', () => {
-        expect(build).to.have.property('build')
+    it('has export default', () => {
+        expect(defaults).to.have.property('build')
             .that.is.a('function');
-        expect(build).to.have.property('buildModules')
+        expect(defaults).to.have.property('buildModules')
             .that.is.a('function');
-        expect(build).to.have.property('getFilesInFolder')
+        expect(defaults).to.have.property('getFilesInFolder')
             .that.is.a('function');
     });
 });
