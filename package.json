@@ -6,7 +6,9 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "js-beautify": "^1.6.14"
+  },
   "devDependencies": {
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.6.0",
