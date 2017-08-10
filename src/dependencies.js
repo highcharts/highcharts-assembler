@@ -5,6 +5,7 @@ const U = require('./utilities.js')
 const LE = '\n'
 let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
 const licenseExp = /(\/\*\*[\s\S]+@license[\s\S]+?(?=\*\/)\*\/)/
+const expJavaScriptComment = /(\/\*[\s\S]*?(.*)\*\/)|(\/\/.*)/gm
 
 /**
  * Test if theres is a match between
@@ -270,6 +271,7 @@ const compileFile = options => {
 module.exports = {
   cleanPath,
   compileFile: compileFile,
+  expJavaScriptComment,
   isString,
   isImportStatement,
   regexGetCapture: regexGetCapture
