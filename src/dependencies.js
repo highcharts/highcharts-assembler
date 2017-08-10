@@ -33,6 +33,10 @@ const getFileImports = content => {
 
 const isString = a => (typeof a === 'string')
 
+const isImportStatement = string => (
+    isString(string) && /^import.*'.*'/.test(string)
+)
+
 const cleanPath = path => {
   let parts = path.split('/')
     .reduce((arr, piece) => {
@@ -267,5 +271,6 @@ module.exports = {
   cleanPath,
   compileFile: compileFile,
   isString,
+  isImportStatement,
   regexGetCapture: regexGetCapture
 }
