@@ -23,20 +23,30 @@ const regexTest = (regex, str) => (regex instanceof RegExp) && regex.test(str)
  */
 const regexGetCapture = (regex, str) => regexTest(regex, str) ? regex.exec(str)[1] : null
 
-const getFileImports = content => {
-  const importExp = /import\s[^;\n]+[\n;]+/g
-  return (content.match(importExp) || []).map((line) => {
-    let path = regexGetCapture(/['"]([^']+)['"]/, line)
-    let variable = regexGetCapture(/import (.+) from/, line)
-    return [path, variable]
-  })
-}
-
 const isString = a => (typeof a === 'string')
 
 const isImportStatement = string => (
     isString(string) && /^import.*'.*'/.test(string)
 )
+
+const getFileImports = content => {
+  let result = []
+  if (isString(content)) {
+    // Remove all comments for simplicity.
+    let string = content.replace(expJavaScriptComment, '')
+    // Split by newline and parse import statements
+    result = string.split('\n').reduce((arr, line) => {
+      if (isImportStatement(line)) {
+        arr.push([
+          regexGetCapture(/['"]([^']+)['"]/, line), // path
+          regexGetCapture(/import (.+) from/, line) // variable
+        ])
+      }
+      return arr
+    }, [])
+  }
+  return result
+}
 
 const cleanPath = path => {
   let parts = path.split('/')
@@ -272,6 +282,7 @@ module.exports = {
   cleanPath,
   compileFile: compileFile,
   expJavaScriptComment,
+  getFileImports,
   isString,
   isImportStatement,
   regexGetCapture: regexGetCapture

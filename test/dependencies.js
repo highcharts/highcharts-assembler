@@ -37,6 +37,24 @@ describe('dependencies.js', () => {
       expect(string.replace(exp, '')).to.equal(`var test `)
     })
   })
+  describe('getFileImports', () => {
+    const getFileImports = defaults.getFileImports
+    it('returns empty array when input is not a string', () => {
+      expect(getFileImports(undefined)).to.deep.equal([])
+    })
+    it('returns tuples of path to module, and the variable name', () => {
+      const string = `import var1 from 'module1'
+var something = var1.something
+import var2 from 'module2'
+// import notImport from 'module3'
+import 'module4'`
+      expect(getFileImports(string)).to.deep.equal([
+        ['module1', 'var1'],
+        ['module2', 'var2'],
+        ['module4', null],
+      ])
+    })
+  })
   describe('isString', () => {
     const isString = defaults.isString
     it('returns true when string', () => {
