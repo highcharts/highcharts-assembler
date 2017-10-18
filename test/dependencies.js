@@ -1,7 +1,10 @@
 'use strict'
-import { describe, it } from 'mocha'
-import { expect } from 'chai'
-import defaults from '../src/dependencies.js'
+const {
+  describe,
+  it
+} = require('mocha')
+const expect = require('chai').expect
+const defaults = require('../src/dependencies.js')
 
 describe('dependencies.js', () => {
   describe('exported properties', () => {
@@ -51,7 +54,7 @@ import 'module4'`
       expect(getFileImports(string)).to.deep.equal([
         ['module1', 'var1'],
         ['module2', 'var2'],
-        ['module4', null],
+        ['module4', null]
       ])
     })
   })

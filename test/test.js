@@ -1,12 +1,15 @@
 'use strict'
-import './build.js'
-import './defaultOptions.js'
-import './dependencies.js'
-import './process.js'
-import './utilities.js'
-import { describe, it } from 'mocha'
-import { expect } from 'chai'
-import main from '../index.js'
+require('./build.js')
+require('./defaultOptions.js')
+require('./dependencies.js')
+require('./process.js')
+require('./utilities.js')
+const {
+  describe,
+  it
+} = require('mocha')
+const expect = require('chai').expect
+const main = require('../index.js')
 
 describe('index.js', () => {
   it('has a primary entry point', () => {

@@ -1,7 +1,11 @@
 'use strict'
-import { describe, it } from 'mocha'
-import { expect } from 'chai'
-import defaults from '../src/build.js'
+const {
+  describe,
+  it
+} = require('mocha')
+const expect = require('chai').expect
+const defaults = require('../src/build.js')
+
 describe('build.js', () => {
   describe('exported properties', () => {
     it('has export default', () => {
