@@ -14,6 +14,7 @@ const {
 const {
   debug,
   getFile,
+  isString,
   writeFile
 } = require('./utilities.js')
 const fs = require('fs')
@@ -32,7 +33,7 @@ const beautify = require('js-beautify').js_beautify
  */
 const getFilesInFolder = (base, includeSubfolders, path) => {
   let filenames = []
-  path = (typeof path === 'undefined') ? '' : path
+  path = isString(path) ? '' : path
   fs.readdirSync(base + path).forEach((filename) => {
     let filepath = base + path + filename
     let isDirectory = fs.lstatSync(filepath).isDirectory()
@@ -103,6 +104,7 @@ const getIndividualOptions = (options) => {
  */
 const build = userOptions => {
     // userOptions is an empty object by default
+    // NOTE Use isObject
   userOptions = (typeof userOptions === 'undefined') ? {} : userOptions
     // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
@@ -137,13 +139,23 @@ const build = userOptions => {
 
 const buildModules = userOptions => {
     // userOptions is an empty object by default
+    // NOTE use isObject
   userOptions = (typeof userOptions === 'undefined') ? {} : userOptions
     // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
     // Check if required options are set
   if (options.base) {
-    options.palette = (options.palette) ? options.palette : getPalette((options.pathPalette ? options.pathPalette : options.base + '../css/highcharts.scss'))
-    options.files = getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
+    options.palette = (options.palette)
+    ? options.palette
+    : getPalette(
+      (
+        isString(options.pathPalette)
+        ? options.pathPalette
+        : options.base + '../css/highcharts.scss'
+      )
+    )
+    options.files = getFilesInFolder(options.base, true)
+      .filter(path => path.endsWith('.js'))
     getIndividualOptions(options)
             .forEach((o) => {
               let content = getFile(o.entry)

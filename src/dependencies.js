@@ -147,7 +147,7 @@ const applyModule = content => {
 const addLicenseHeader = (content, o) => {
   const str = getFile(o.entry)
   let header = regexGetCapture(licenseExp, str)
-  return (header || '') + content
+  return (isString(header) ? header : '') + content
 }
 
 /**
