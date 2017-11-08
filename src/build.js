@@ -2,9 +2,20 @@
 /* eslint func-style: ["error", "expression"] */
 'use strict'
 const defaultOptions = require('./defaultOptions.js')
-const d = require('./dependencies')
-const p = require('./process.js')
-const U = require('./utilities.js')
+const {
+  compileFile
+} = require('./dependencies')
+const {
+  getPalette,
+  preProcess,
+  printPalette,
+  transpile
+} = require('./process.js')
+const {
+  debug,
+  getFile,
+  writeFile
+} = require('./utilities.js')
 const fs = require('fs')
 const {
     join,
@@ -97,22 +108,22 @@ const build = userOptions => {
   let options = Object.assign({}, defaultOptions, userOptions)
     // Check if required options are set
   if (options.base) {
-    options.palette = (options.palette) ? options.palette : p.getPalette((options.jsBase ? options.jsBase : options.base + '../') + '../css/highcharts.scss')
-    p.printPalette(options.output + 'palette.html', options.palette)
+    options.palette = (options.palette) ? options.palette : getPalette((options.jsBase ? options.jsBase : options.base + '../') + '../css/highcharts.scss')
+    printPalette(options.output + 'palette.html', options.palette)
     options.date = options.date ? options.date : getDate()
     options.files = (options.files) ? options.files : getFilesInFolder(options.base, true)
     getIndividualOptions(options)
             .forEach((o, i, arr) => {
-              let file = d.compileFile(o)
-              file = p.preProcess(file, o.build)
+              let file = compileFile(o)
+              file = preProcess(file, o.build)
               if (o.transpile) {
-                file = p.transpile(file)
+                file = transpile(file)
               }
               if (o.pretty) {
                 file = beautify(file)
               }
-              U.writeFile(o.outputPath, file)
-              U.debug(o.debug, [
+              writeFile(o.outputPath, file)
+              debug(o.debug, [
                 'Completed ' + (i + 1) + ' of ' + arr.length,
                 '- type: ' + o.type,
                 '- entry: ' + o.entry,
@@ -120,7 +131,7 @@ const build = userOptions => {
               ].join('\n'))
             })
   } else {
-    U.debug(true, 'Missing required option! The options \'base\' is required for the script to run')
+    debug(true, 'Missing required option! The options \'base\' is required for the script to run')
   }
 }
 
@@ -131,22 +142,22 @@ const buildModules = userOptions => {
   let options = Object.assign({}, defaultOptions, userOptions)
     // Check if required options are set
   if (options.base) {
-    options.palette = (options.palette) ? options.palette : p.getPalette((options.pathPalette ? options.pathPalette : options.base + '../css/highcharts.scss'))
+    options.palette = (options.palette) ? options.palette : getPalette((options.pathPalette ? options.pathPalette : options.base + '../css/highcharts.scss'))
     options.files = getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
     getIndividualOptions(options)
             .forEach((o) => {
-              let content = U.getFile(o.entry)
+              let content = getFile(o.entry)
               const outputPath = join(
                   options.output,
                   (o.type === 'css' ? 'js' : ''),
                   'es-modules',
                   o.filename
               )
-              let file = p.preProcess(content, o.build)
-              U.writeFile(resolve(outputPath), file)
+              let file = preProcess(content, o.build)
+              writeFile(resolve(outputPath), file)
             })
   } else {
-    U.debug(true, 'Missing required option! The options \'base\' is required for the script to run')
+    debug(true, 'Missing required option! The options \'base\' is required for the script to run')
   }
 }
 

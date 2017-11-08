@@ -2,7 +2,10 @@
 /* eslint func-style: ["error", "expression"] */
 'use strict'
 const fs = require('fs')
-const U = require('./utilities.js')
+const {
+  debug,
+  writeFile
+} = require('./utilities.js')
 
 const getFunction = (body, args) => {
   let a = [null].concat((args || []), [body]) // context + arguments + function body
@@ -10,8 +13,8 @@ const getFunction = (body, args) => {
   try {
     f = new (Function.prototype.bind.apply(Function, a))() // eslint-disable-line no-new-func
   } catch (e) {
-    U.writeFile('temp.js', body)
-    U.debug(true, ['Construction of function failed. Caused by: ' + e.message,
+    writeFile('temp.js', body)
+    debug(true, ['Construction of function failed. Caused by: ' + e.message,
       'View function body in temp.js'
     ].join('\n'))
     throw new Error('Exit')
@@ -89,7 +92,7 @@ const printPalette = (path, palette) => {
             `
     }
   })
-  U.writeFile(path, html)
+  writeFile(path, html)
 }
 
 const preProcess = (content, build) => {
