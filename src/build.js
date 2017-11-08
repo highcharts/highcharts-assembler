@@ -14,6 +14,7 @@ const {
 const {
   debug,
   getFile,
+  isObject,
   isString,
   writeFile
 } = require('./utilities.js')
@@ -104,8 +105,7 @@ const getIndividualOptions = (options) => {
  */
 const build = userOptions => {
     // userOptions is an empty object by default
-    // NOTE Use isObject
-  userOptions = (typeof userOptions === 'undefined') ? {} : userOptions
+  userOptions = isObject(userOptions) ? userOptions : {}
     // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
     // Check if required options are set
@@ -139,8 +139,7 @@ const build = userOptions => {
 
 const buildModules = userOptions => {
     // userOptions is an empty object by default
-    // NOTE use isObject
-  userOptions = (typeof userOptions === 'undefined') ? {} : userOptions
+  userOptions = isObject(userOptions) ? userOptions : {}
     // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
     // Check if required options are set
