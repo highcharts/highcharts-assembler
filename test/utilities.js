@@ -8,21 +8,52 @@ const defaults = require('../src/utilities.js')
 
 describe('utilities.js', () => {
   describe('exported properties', () => {
-    it('has export default', () => {
-      expect(defaults).to.have.property('createDirectory')
-              .that.is.a('function')
-      expect(defaults).to.have.property('debug')
-              .that.is.a('function')
-      expect(defaults).to.have.property('exists')
-              .that.is.a('function')
-      expect(defaults).to.have.property('getFile')
-              .that.is.a('function')
-      expect(defaults).to.have.property('removeDirectory')
-              .that.is.a('function')
-      expect(defaults).to.have.property('removeFile')
-              .that.is.a('function')
-      expect(defaults).to.have.property('writeFile')
-              .that.is.a('function')
+    const functions = [
+      'createDirectory',
+      'debug',
+      'exists',
+      'getFile',
+      'isString',
+      'removeDirectory',
+      'removeFile',
+      'writeFile'
+    ]
+    it('should have a default export', () => {
+      functions.forEach((name) => {
+        expect(defaults).to.have.property(name)
+          .that.is.a('function')
+      })
+    })
+    it('should not have unexpected properties', () => {
+      const exportedProperties = Object.keys(defaults)
+      expect(exportedProperties).to.deep.equal(functions)
+    })
+  })
+  describe('isString', () => {
+    const isString = defaults.isString
+    it('should return true when string', () => {
+      expect(isString('')).to.equal(true)
+    })
+    it('should return false when boolean', () => {
+      expect(isString(true)).to.equal(false)
+    })
+    it('should return false when undefined', () => {
+      expect(isString(undefined)).to.equal(false)
+    })
+    it('should return false when null', () => {
+      expect(isString(null)).to.equal(false)
+    })
+    it('should return false when object', () => {
+      expect(isString({})).to.equal(false)
+    })
+    it('should return false when array', () => {
+      expect(isString([])).to.equal(false)
+    })
+    it('should return false when number', () => {
+      expect(isString(1)).to.equal(false)
+    })
+    it('should return false when function', () => {
+      expect(isString(function () {})).to.equal(false)
     })
   })
 })

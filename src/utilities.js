@@ -12,6 +12,8 @@ const debug = (d, text) => {
   }
 }
 
+const isString = x => (typeof x === 'string')
+
 /**
  * Check wether a file path exists or not.
  * @param  {string} path Path to file or directory
@@ -109,6 +111,7 @@ module.exports = {
   debug,
   exists,
   getFile,
+  isString,
   removeDirectory,
   removeFile,
   writeFile

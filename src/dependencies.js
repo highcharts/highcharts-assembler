@@ -1,7 +1,10 @@
 /* eslint-env node, es6 */
 /* eslint func-style: ["error", "expression"] */
 'use strict'
-const U = require('./utilities.js')
+const {
+  isString,
+  getFile
+} = require('./utilities.js')
 const LE = '\n'
 const {
     dirname,
@@ -26,8 +29,6 @@ const regexTest = (regex, str) => (regex instanceof RegExp) && regex.test(str)
  * @returns {string|null}       The result from the capture group or null
  */
 const regexGetCapture = (regex, str) => regexTest(regex, str) ? regex.exec(str)[1] : null
-
-const isString = a => (typeof a === 'string')
 
 const isImportStatement = string => (
     isString(string) && /^import.*'.*'/.test(string)
@@ -84,7 +85,7 @@ const cleanPath = path => {
 const getOrderedDependencies = (file, parent, dependencies) => {
   const dirnameParent = dirname(parent)
   let filePath = join(dirnameParent, file)
-  let content = U.getFile(filePath)
+  let content = getFile(filePath)
   let imports
   if (content === null) {
     throw new Error('File ' + filePath + ' does not exist. Listed dependency in ' + parent)
@@ -144,7 +145,7 @@ const applyModule = content => {
  * @returns {string} Returns the distribution file with a header.
  */
 const addLicenseHeader = (content, o) => {
-  const str = U.getFile(o.entry)
+  const str = getFile(o.entry)
   let header = regexGetCapture(licenseExp, str)
   return (header || '') + content
 }
@@ -163,7 +164,7 @@ const removeLicenseHeader = content => content.replace(licenseExp, '')
  */
 const getExports = dependencies => {
   return dependencies.map(d => {
-    let content = U.getFile(d)
+    let content = getFile(d)
     let exported = regexGetCapture(exportExp, content)
     return [d, exported]
   })
@@ -177,7 +178,7 @@ const getExports = dependencies => {
  */
 const getImports = (dependencies, exported) => {
   return dependencies.map(d => {
-    let content = U.getFile(d)
+    let content = getFile(d)
     let imports = getFileImports(content)
     return imports.reduce((arr, t) => {
       let path
@@ -257,7 +258,7 @@ const compileFile = options => {
   let exported = getExports(dependencies)
   let imported = getImports(dependencies, exported)
   let mapTransform = (path, i, arr) => {
-    let content = U.getFile(path)
+    let content = getFile(path)
     let moduleOptions = Object.assign({}, options, {
       path: path,
       imported: imported.find(val => val[0] === path)[1],
