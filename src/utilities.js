@@ -4,6 +4,19 @@
 const {
     dirname
 } = require('path')
+
+const isUndefined = x => (typeof x === 'undefined')
+
+const isString = string => (typeof string === 'string')
+
+const isBool = x => (typeof x === 'boolean')
+
+const isArray = x => Array.isArray(x)
+
+const isNull = x => x === null
+
+const isObject = x => ((typeof x === 'object') && !isArray(x) && !isNull(x))
+
 const debug = (d, text) => {
   if (d) {
         /* eslint-disable no-console */
@@ -11,8 +24,6 @@ const debug = (d, text) => {
         /* eslint-enable no-console */
   }
 }
-
-const isString = x => (typeof x === 'string')
 
 /**
  * Check wether a file path exists or not.
@@ -111,7 +122,12 @@ module.exports = {
   debug,
   exists,
   getFile,
+  isArray,
+  isBool,
+  isNull,
+  isObject,
   isString,
+  isUndefined,
   removeDirectory,
   removeFile,
   writeFile
