@@ -15,8 +15,6 @@ describe('utilities.js', () => {
               .that.is.a('function')
       expect(defaults).to.have.property('exists')
               .that.is.a('function')
-      expect(defaults).to.have.property('folder')
-              .that.is.a('function')
       expect(defaults).to.have.property('getFile')
               .that.is.a('function')
       expect(defaults).to.have.property('removeDirectory')

@@ -6,6 +6,10 @@ const d = require('./dependencies')
 const p = require('./process.js')
 const U = require('./utilities.js')
 const fs = require('fs')
+const {
+    join,
+    resolve
+} = require('path')
 const beautify = require('js-beautify').js_beautify
 
 /**
@@ -132,9 +136,14 @@ const buildModules = userOptions => {
     getIndividualOptions(options)
             .forEach((o) => {
               let content = U.getFile(o.entry)
-              let outputPath = options.output + o.type + '/' + o.filename
+              const outputPath = join(
+                  options.output,
+                  (o.type === 'css' ? 'js' : ''),
+                  'es-modules',
+                  o.filename
+              )
               let file = p.preProcess(content, o.build)
-              U.writeFile(outputPath, file)
+              U.writeFile(resolve(outputPath), file)
             })
   } else {
     U.debug(true, 'Missing required option! The options \'base\' is required for the script to run')

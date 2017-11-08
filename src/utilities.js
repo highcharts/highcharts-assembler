@@ -1,6 +1,9 @@
 /* eslint-env node, es6 */
 /* eslint func-style: ["error", "expression"] */
 'use strict'
+const {
+    dirname
+} = require('path')
 const debug = (d, text) => {
   if (d) {
         /* eslint-disable no-console */
@@ -33,19 +36,6 @@ const exists = path => {
 const getFile = path => {
   const fs = require('fs')
   return (exists(path) ? fs.readFileSync(path, 'utf8') : null)
-}
-
-/**
- * Gets directory path from a file path
- * @param  {string} path File path
- * @returns {string} Path to directory where the file is located
- */
-const folder = path => {
-  let folderPath = '.'
-  if (path !== '') {
-    folderPath = path.substring(0, path.lastIndexOf('/'))
-  }
-  return folderPath + '/'
 }
 
 /**
@@ -110,7 +100,7 @@ const removeDirectory = path => new Promise((resolve, reject) => {
 
 const writeFile = (path, content) => {
   const fs = require('fs')
-  createDirectory(folder(path))
+  createDirectory(dirname(path))
   fs.writeFileSync(path, content)
 }
 
@@ -118,7 +108,6 @@ module.exports = {
   createDirectory,
   debug,
   exists,
-  folder,
   getFile,
   removeDirectory,
   removeFile,

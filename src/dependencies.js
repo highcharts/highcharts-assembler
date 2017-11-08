@@ -3,6 +3,10 @@
 'use strict'
 const U = require('./utilities.js')
 const LE = '\n'
+const {
+    dirname,
+    join
+} = require('path')
 let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
 const licenseExp = /(\/\*\*[\s\S]+@license[\s\S]+?(?=\*\/)\*\/)/
 const expJavaScriptComment = /(\/\*[\s\S]*?(.*)\*\/)|(\/\/.*)/gm
@@ -77,16 +81,9 @@ const cleanPath = path => {
   return parts.join('/')
 }
 
-const folder = path => {
-  let folderPath = '.'
-  if (path !== '') {
-    folderPath = path.substring(0, path.lastIndexOf('/'))
-  }
-  return folderPath + '/'
-}
-
 const getOrderedDependencies = (file, parent, dependencies) => {
-  let filePath = cleanPath(folder(parent) + file)
+  const dirnameParent = dirname(parent)
+  let filePath = join(dirnameParent, file)
   let content = U.getFile(filePath)
   let imports
   if (content === null) {
@@ -100,8 +97,8 @@ const getOrderedDependencies = (file, parent, dependencies) => {
   }
   imports.forEach(d => {
     let module = d[0]
-    let modulePath = cleanPath(folder(filePath) + module)
-    if (dependencies.indexOf(modulePath) === -1) {
+    const pathModule = join(dirname(filePath), module)
+    if (dependencies.indexOf(pathModule) === -1) {
       dependencies = getOrderedDependencies(module, filePath, dependencies)
     }
   })
@@ -188,7 +185,7 @@ const getImports = (dependencies, exported) => {
       let param = t[1]
       if (param) {
                 // @todo check if import is of object structure and not just default
-        path = cleanPath(folder(d) + t[0])
+        path = join(dirname(d), t[0])
         mParam = exported.find(e => e[0] === path)[1]
         arr[1].push([param, mParam])
       }
