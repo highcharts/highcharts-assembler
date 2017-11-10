@@ -34,14 +34,14 @@ const beautify = require('js-beautify').js_beautify
  */
 const getFilesInFolder = (base, includeSubfolders, path) => {
   let filenames = []
-  path = isString(path) ? '' : path
-  fs.readdirSync(base + path).forEach((filename) => {
-    let filepath = base + path + filename
+  let pathSubFolder = isString(path) ? path : ''
+  fs.readdirSync(base + pathSubFolder).forEach((filename) => {
+    let filepath = base + pathSubFolder + filename
     let isDirectory = fs.lstatSync(filepath).isDirectory()
     if (isDirectory && includeSubfolders) {
-      filenames = filenames.concat(getFilesInFolder(base, includeSubfolders, path + filename + '/'))
+      filenames = filenames.concat(getFilesInFolder(base, includeSubfolders, pathSubFolder + filename + '/'))
     } else if (!isDirectory) {
-      filenames.push(path + filename)
+      filenames.push(pathSubFolder + filename)
     }
   })
   return filenames
