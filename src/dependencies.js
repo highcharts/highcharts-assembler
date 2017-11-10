@@ -281,7 +281,6 @@ module.exports = {
   compileFile: compileFile,
   expJavaScriptComment,
   getFileImports,
-  isString,
   isImportStatement,
   regexGetCapture: regexGetCapture
 }
