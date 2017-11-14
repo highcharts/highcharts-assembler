@@ -2,6 +2,7 @@
 /* eslint func-style: ["error", "expression"] */
 'use strict'
 const {
+  exists,
   isString,
   getFile
 } = require('./utilities.js')
@@ -53,6 +54,15 @@ const getFileImports = content => {
   return result
 }
 
+const getListOfFileDependencies = (pathFile) => {
+  let result = false
+  if (exists(pathFile)) {
+    const content = getFile(pathFile)
+    result = getFileImports(content)
+  }
+  return result
+}
+
 const cleanPath = path => {
   let parts = path.split('/')
     .reduce((arr, piece) => {
@@ -83,27 +93,28 @@ const cleanPath = path => {
 }
 
 const getOrderedDependencies = (file, parent, dependencies) => {
-  const dirnameParent = dirname(parent)
+  const dirnameParent = isString(parent) ? dirname(parent) : ''
   let filePath = join(dirnameParent, file)
   let content = getFile(filePath)
   let imports
+  let dep = dependencies || []
   if (content === null) {
     throw new Error('File ' + filePath + ' does not exist. Listed dependency in ' + parent)
   }
   imports = getFileImports(content)
   if (parent === '') {
-    dependencies.unshift(filePath)
+    dep.unshift(filePath)
   } else {
-    dependencies.splice(dependencies.indexOf(parent) + 1, 0, filePath)
+    dep.splice(dep.indexOf(parent) + 1, 0, filePath)
   }
   imports.forEach(d => {
     let module = d[0]
     const pathModule = join(dirname(filePath), module)
-    if (dependencies.indexOf(pathModule) === -1) {
-      dependencies = getOrderedDependencies(module, filePath, dependencies)
+    if (dep.indexOf(pathModule) === -1) {
+      dep = getOrderedDependencies(module, filePath, dep)
     }
   })
-  return dependencies
+  return dep
 }
 
 const applyUMD = content => {
@@ -281,6 +292,8 @@ module.exports = {
   compileFile: compileFile,
   expJavaScriptComment,
   getFileImports,
+  getListOfFileDependencies,
+  getOrderedDependencies,
   isImportStatement,
   regexGetCapture: regexGetCapture
 }

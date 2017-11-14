@@ -14,14 +14,16 @@ const {
 const {
   debug,
   getFile,
+  isArray,
   isObject,
   isString,
   writeFile
 } = require('./utilities.js')
 const fs = require('fs')
 const {
-    join,
-    resolve
+  join,
+  resolve,
+  sep
 } = require('path')
 const beautify = require('js-beautify').js_beautify
 
@@ -35,13 +37,15 @@ const beautify = require('js-beautify').js_beautify
 const getFilesInFolder = (base, includeSubfolders, path) => {
   let filenames = []
   let pathSubFolder = isString(path) ? path : ''
-  fs.readdirSync(base + pathSubFolder).forEach((filename) => {
-    let filepath = base + pathSubFolder + filename
+  fs.readdirSync(join(base, pathSubFolder)).forEach((filename) => {
+    let filepath = join(base, pathSubFolder, filename)
     let isDirectory = fs.lstatSync(filepath).isDirectory()
     if (isDirectory && includeSubfolders) {
-      filenames = filenames.concat(getFilesInFolder(base, includeSubfolders, pathSubFolder + filename + '/'))
+      filenames = filenames.concat(
+        getFilesInFolder(base, includeSubfolders, join(pathSubFolder, filename))
+      )
     } else if (!isDirectory) {
-      filenames.push(pathSubFolder + filename)
+      filenames.push(join(pathSubFolder, filename).split(sep).join('/'))
     }
   })
   return filenames
@@ -70,9 +74,13 @@ const getDate = () => {
 const getIndividualOptions = (options) => {
   return options.files.reduce((arr, filename) => {
     let o = Object.assign({}, options, options.fileOptions && options.fileOptions[filename])
-    o.entry = o.base + filename
+    o.entry = join(o.base, filename)
     delete o.fileOptions
-    let types = o.type === 'both' ? ['classic', 'css'] : [o.type]
+    const types = (
+      isArray(o.type)
+      ? o.type
+      : o.type === 'both' ? ['classic', 'css'] : [o.type]
+    )
     let typeOptions = types.map(t => {
       let folder = t === 'classic' ? '' : 'js/'
       let build = {
@@ -153,20 +161,55 @@ const buildModules = userOptions => {
         : options.base + '../css/highcharts.scss'
       )
     )
-    options.files = getFilesInFolder(options.base, true)
-      .filter(path => path.endsWith('.js'))
+    options.files = (
+      isArray(options.files)
+      ? options.files
+      : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
+    )
     getIndividualOptions(options)
-            .forEach((o) => {
-              let content = getFile(o.entry)
-              const outputPath = join(
-                  options.output,
-                  (o.type === 'css' ? 'js' : ''),
-                  'es-modules',
-                  o.filename
-              )
-              let file = preProcess(content, o.build)
-              writeFile(resolve(outputPath), file)
-            })
+      .forEach((o) => {
+        let content = getFile(o.entry)
+        const outputPath = join(
+            options.output,
+            (o.type === 'css' ? 'js' : ''),
+            'es-modules',
+            o.filename
+        )
+        let file = preProcess(content, o.build)
+        writeFile(resolve(outputPath), file)
+      })
+  } else {
+    debug(true, 'Missing required option! The options \'base\' is required for the script to run')
+  }
+}
+
+const buildDistFromModules = (userOptions) => {
+  // userOptions is an empty object by default
+  userOptions = isObject(userOptions) ? userOptions : {}
+  // Merge the userOptions with defaultOptions
+  let options = Object.assign({}, defaultOptions, userOptions)
+  // Check if required options are set
+  if (options.base) {
+    options.date = options.date ? options.date : getDate()
+    options.files = (
+      isArray(options.files)
+      ? options.files
+      : getFilesInFolder(options.base, true)
+    )
+    getIndividualOptions(options)
+      .forEach((o, i, arr) => {
+        let file = compileFile(o)
+        if (o.pretty) {
+          file = beautify(file)
+        }
+        writeFile(o.outputPath, file)
+        debug(o.debug, [
+          'Completed ' + (i + 1) + ' of ' + arr.length,
+          '- type: ' + o.type,
+          '- entry: ' + o.entry,
+          '- output: ' + o.outputPath
+        ].join('\n'))
+      })
   } else {
     debug(true, 'Missing required option! The options \'base\' is required for the script to run')
   }
@@ -174,6 +217,7 @@ const buildModules = userOptions => {
 
 module.exports = {
   build,
+  buildDistFromModules,
   buildModules,
   getFilesInFolder
 }
