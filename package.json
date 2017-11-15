@@ -1,6 +1,6 @@
 {
   "name": "highcharts-assembler",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "The official bundler for Highcharts JS.",
   "main": "index.js",
   "directories": {
@@ -18,7 +18,7 @@
   "scripts": {
     "lint": "standard --fix",
     "precommit": "npm test",
-    "test": "npm run lint && npm run unit-tests",
+    "test": "npm run test-lint && npm run unit-tests",
     "test-lint": "standard",
     "unit-tests": "mocha test/test.js"
   },
