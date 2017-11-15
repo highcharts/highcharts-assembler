@@ -3,13 +3,15 @@
 'use strict'
 const {
   exists,
+  isArray,
   isString,
   getFile
 } = require('./utilities.js')
 const LE = '\n'
 const {
     dirname,
-    join
+    join,
+    resolve
 } = require('path')
 let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
 const licenseExp = /(\/\*\*[\s\S]+@license[\s\S]+?(?=\*\/)\*\/)/
@@ -93,28 +95,29 @@ const cleanPath = path => {
 }
 
 const getOrderedDependencies = (file, parent, dependencies) => {
-  const dirnameParent = isString(parent) ? dirname(parent) : ''
-  let filePath = join(dirnameParent, file)
-  let content = getFile(filePath)
-  let imports
-  let dep = dependencies || []
+  const filePath = isString(parent) ? join(dirname(parent), file) : file
+  const content = getFile(filePath)
+  let dep = isArray(dependencies) ? dependencies : []
   if (content === null) {
-    throw new Error('File ' + filePath + ' does not exist. Listed dependency in ' + parent)
+    throw new Error([
+      `File ${filePath} does not exist. Listed dependency in ${parent}.`,
+      `Full path: ${resolve(filePath)}.`
+    ].join('\n'))
   }
-  imports = getFileImports(content)
-  if (parent === '') {
-    dep.unshift(filePath)
+  if (isString(parent)) {
+    dep.splice(dep.indexOf(parent), 0, filePath)
   } else {
-    dep.splice(dep.indexOf(parent) + 1, 0, filePath)
+    dep.unshift(filePath)
   }
-  imports.forEach(d => {
+  const imports = getFileImports(content)
+  return imports.reduce((arr, d) => {
     let module = d[0]
     const pathModule = join(dirname(filePath), module)
-    if (dep.indexOf(pathModule) === -1) {
-      dep = getOrderedDependencies(module, filePath, dep)
+    if (arr.indexOf(pathModule) === -1) {
+      arr = getOrderedDependencies(module, filePath, arr)
     }
-  })
-  return dep
+    return arr
+  }, dep)
 }
 
 const applyUMD = content => {
@@ -265,7 +268,7 @@ const fileTransform = (content, options) => {
 
 const compileFile = options => {
   let entry = options.entry
-  let dependencies = getOrderedDependencies(entry, '', [])
+  let dependencies = getOrderedDependencies(entry)
   let exported = getExports(dependencies)
   let imported = getImports(dependencies, exported)
   let mapTransform = (path, i, arr) => {
@@ -280,7 +283,6 @@ const compileFile = options => {
     return moduleTransform(content, moduleOptions)
   }
   let modules = dependencies
-        .reverse()
         .map(mapTransform)
         .filter(m => m !== '')
         .join(LE)
