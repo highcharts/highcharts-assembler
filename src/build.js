@@ -15,9 +15,11 @@ const {
   debug,
   getFile,
   isArray,
+  isFunction,
   isObject,
   isString,
-  writeFile
+  writeFile,
+  writeFilePromise
 } = require('./utilities.js')
 const fs = require('fs')
 const {
@@ -185,6 +187,10 @@ const buildModules = userOptions => {
 }
 
 const buildDistFromModules = (userOptions) => {
+  let result
+  const message = {
+    errBase: 'Missing required option! The options \'base\' is required for the script to run'
+  }
   // userOptions is an empty object by default
   userOptions = isObject(userOptions) ? userOptions : {}
   // Merge the userOptions with defaultOptions
@@ -197,23 +203,27 @@ const buildDistFromModules = (userOptions) => {
       ? options.files
       : getFilesInFolder(options.base, true)
     )
-    getIndividualOptions(options)
-      .forEach((o, i, arr) => {
-        let file = compileFile(o)
-        if (o.pretty) {
-          file = beautify(file)
-        }
-        writeFile(o.outputPath, file)
-        debug(o.debug, [
-          'Completed ' + (i + 1) + ' of ' + arr.length,
-          '- type: ' + o.type,
-          '- entry: ' + o.entry,
-          '- output: ' + o.outputPath
-        ].join('\n'))
+    const promises = getIndividualOptions(options)
+      .map((o, i, arr) => {
+        return new Promise((resolve, reject) => {
+          let file = compileFile(o)
+          if (o.pretty) {
+            file = beautify(file)
+          }
+          resolve(file)
+        })
+        .then((content) => writeFilePromise(o.outputPath, content))
+        .then(() => {
+          if (isFunction(o.cb)) {
+            o.cb(o.outputPath)
+          }
+        })
       })
+    result = Promise.all(promises)
   } else {
-    debug(true, 'Missing required option! The options \'base\' is required for the script to run')
+    result = Promise.reject(new Error(message.errBase))
   }
+  return result
 }
 
 module.exports = {

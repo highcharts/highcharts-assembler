@@ -15,13 +15,15 @@ describe('utilities.js', () => {
       'getFile',
       'isArray',
       'isBool',
+      'isFunction',
       'isNull',
       'isObject',
       'isString',
       'isUndefined',
       'removeDirectory',
       'removeFile',
-      'writeFile'
+      'writeFile',
+      'writeFilePromise'
     ]
     it('should have a default export', () => {
       functions.forEach((name) => {
