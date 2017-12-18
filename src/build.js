@@ -40,11 +40,12 @@ const getFilesInFolder = (base, includeSubfolders, path) => {
   fs.readdirSync(join(base, pathSubFolder)).forEach((filename) => {
     let filepath = join(base, pathSubFolder, filename)
     let isDirectory = fs.lstatSync(filepath).isDirectory()
+    let isSystemFile = filename.indexOf('.') === 0
     if (isDirectory && includeSubfolders) {
       filenames = filenames.concat(
         getFilesInFolder(base, includeSubfolders, join(pathSubFolder, filename))
       )
-    } else if (!isDirectory) {
+    } else if (!isDirectory && !isSystemFile) {
       filenames.push(join(pathSubFolder, filename).split(sep).join('/'))
     }
   })
