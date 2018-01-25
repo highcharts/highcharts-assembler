@@ -73,7 +73,9 @@ const createDirectory = path => {
     try {
       statSync(p)
     } catch (err) {
-      mkdirSync(p)
+      if (p) {
+        mkdirSync(p)
+      }
     }
     return p + '/'
   }, '')
