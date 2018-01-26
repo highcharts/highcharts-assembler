@@ -14,7 +14,6 @@ const {
     resolve
 } = require('path')
 let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
-const licenseExp = /(\/\*\*[\s\S]+@license[\s\S]+?(?=\*\/)\*\/)/
 const expJavaScriptComment = /(\/\*[\s\S]*?(.*)\*\/)|(\/\/.*)/gm
 
 /**
@@ -36,6 +35,29 @@ const regexGetCapture = (regex, str) => regexTest(regex, str) ? regex.exec(str)[
 const isImportStatement = string => (
     isString(string) && /^import.*'.*'/.test(string)
 )
+
+const getLicenseBlock = (txt) => {
+  let result = ''
+  const searchMiddle = '@license'
+  const searchStart = '/**'
+  const searchEnd = '*/'
+  if (isString(txt)) {
+    const searchMiddleIndex = txt.indexOf(searchMiddle)
+    if (searchMiddleIndex > -1) {
+      const start = txt.slice(0, searchMiddleIndex)
+      const end = txt.slice(searchMiddleIndex)
+      const startIndex = start.lastIndexOf(searchStart)
+      const endIndex = end.indexOf(searchEnd)
+      if (startIndex > -1 && endIndex > -1) {
+        result = txt.slice(
+          startIndex,
+          searchMiddleIndex + endIndex + searchEnd.length
+        )
+      }
+    }
+  }
+  return result
+}
 
 const getFileImports = content => {
   let result = []
@@ -160,7 +182,7 @@ const applyModule = content => {
  */
 const addLicenseHeader = (content, o) => {
   const str = getFile(o.entry)
-  let header = regexGetCapture(licenseExp, str)
+  const header = getLicenseBlock(str)
   return (isString(header) ? header : '') + content
 }
 
@@ -169,7 +191,12 @@ const addLicenseHeader = (content, o) => {
  * @param  {string} content Module content.
  * @returns {string} Returns module content without license header.
  */
-const removeLicenseHeader = content => content.replace(licenseExp, '')
+const removeLicenseHeader = content => {
+  return content.replace(
+    getLicenseBlock(content),
+    ''
+  )
+}
 
 /**
  * List of names for the exported variable per module.
