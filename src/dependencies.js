@@ -248,12 +248,19 @@ const getImports = (dependencies, exported) => {
  * @returns {string} The module content after transformation
  */
 const moduleTransform = (content, options) => {
-  let path = options.path
-  let imported = options.imported
-  let r = options.exported
-  let i = options.i
-  let arr = options.arr
-  let exclude = options.exclude
+  const {
+    arr,
+    exclude = [],
+    exported,
+    i,
+    imported,
+    path
+  } = options
+  const doExclude = (
+    isArray(exclude)
+    ? exclude.includes(path)
+    : regexTest(exclude, path)
+  )
   let params = imported.map(m => m[0]).join(', ')
   let mParams = imported.map(m => m[1]).join(', ')
     // Remove license headers from modules
@@ -264,15 +271,19 @@ const moduleTransform = (content, options) => {
     // @todo Add imported variables to the function arguments. Reuse getImports for this
   content = content.replace(/import\s[^\n]+\n/g, '')
         .replace(exportExp, '') // Remove exports statements
-  if (regexTest(exclude, path)) {
+  if (doExclude) {
     content = ''
   } else if (i === arr.length - 1) {
-        // @notice Do not remove line below. It is for when we have more advanced master files.
-        // content = (r ? 'return = ' : '') + '(function () {' + LE + content + (r ? LE + 'return ' + r + ';': '') + LE + '}());';
-    content = (r ? 'return ' + r : '')
+    // @notice Do not remove line below. It is for when we have more advanced master files.
+    // content = (r ? 'return = ' : '') + '(function () {' + LE + content + (r ? LE + 'return ' + r + ';': '') + LE + '}());';
+    content = (exported ? 'return ' + exported : '')
   } else {
-        // @notice The result variable gets the same name as the one returned by the module, but when we have more advanced modules it could probably benefit from using the filename instead.
-    content = (r ? 'var ' + r + ' = ' : '') + '(function (' + params + ') {' + LE + content + (r ? LE + 'return ' + r + ';' : '') + LE + '}(' + mParams + '));'
+    // @notice The result variable gets the same name as the one returned by the module, but when we have more advanced modules it could probably benefit from using the filename instead.
+    content = [
+      (exported ? 'var ' + exported + ' = ' : '') + '(function (' + params + ') {',
+      content + (exported ? LE + 'return ' + exported + ';' : ''),
+      '}(' + mParams + '));'
+    ].join(LE)
   }
   return content
 }
