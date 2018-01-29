@@ -178,7 +178,7 @@ const getFileImports = (content) => {
   let result = []
   if (isString(content)) {
     let substr = content
-    const word = 'import'
+    const word = 'import '
     let index = 0
     // While there is
     while (substr.includes(word, index)) {
@@ -186,6 +186,7 @@ const getFileImports = (content) => {
       const isValidStatement = (
         !isInsideSingleComment(content, index) &&
         !isInsideBlockComment(content, index)
+        // TODO isInsideString
       )
       if (isValidStatement) {
         const indexFirstChar = content.indexOf(`'`, index)

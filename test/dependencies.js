@@ -54,6 +54,7 @@ describe('dependencies.js', () => {
       /*
       import notImport from 'module6'
       */
+      const b = 'import'
       `
       expect(getFileImports(string)).to.deep.equal([
         ['module1', 'var1'],
@@ -123,6 +124,15 @@ describe('dependencies.js', () => {
       expect(isInsideBlockComment(str2, str2.indexOf('comment 1'))).to.equal(false)
       expect(isInsideBlockComment(str2, str2.indexOf('const a'))).to.equal(false)
       expect(isInsideBlockComment('const a', 2)).to.equal(false)
+    })
+  })
+  describe.skip('isInsideString', () => {
+    const isInsideString = defaults.isInsideString
+    it('should return true if inside a string', () => {
+      expect(isInsideString(`const a = 'string1'`, 11)).to.equal(true)
+      expect(isInsideString(`const b = "string2"`, 11)).to.equal(true)
+      expect(isInsideString(`const c = '\nstring3\n'`, 12)).to.equal(true)
+      expect(isInsideString(`const a = 'string1'`, 3)).to.equal(false)
     })
   })
   describe('isImportStatement', () => {
