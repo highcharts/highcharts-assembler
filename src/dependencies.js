@@ -39,7 +39,7 @@ const isImportStatement = string => (
 /**
  * Removes the first occurence of a block comment from a given string.
  * @param {String} str The string to operate on.
- * @return {String} Return the str minus its first block comment. Returns ''
+ * @return {String} Returns the str minus its first block comment. Returns ''
  * if str is not of type String.
  */
 const removeFirstBlockComment = (str) => {
@@ -50,6 +50,26 @@ const removeFirstBlockComment = (str) => {
       const end = str.includes('*/', start + 2)
         ? str.indexOf('*/', start + 2) + 2
         : str.length
+      result = str.slice(0, start) + str.slice(end, str.length)
+    } else {
+      result = str
+    }
+  }
+  return result
+}
+
+/**
+ * Removes the first occurence of a single line comment from a given string.
+ * @param {String} str The string to operate on.
+ * @return {String} Returns str minus its frist single line comment. Returns ''
+ * if str is not of type String.
+ */
+const removeFirstSingleLineComment = (str) => {
+  let result = ''
+  if (isString(str)) {
+    const start = str.indexOf('//')
+    if (start > -1) {
+      const end = str.includes('\n') ? str.indexOf('\n') : str.length
       result = str.slice(0, start) + str.slice(end, str.length)
     } else {
       result = str
@@ -358,5 +378,6 @@ module.exports = {
   getOrderedDependencies,
   isImportStatement,
   regexGetCapture,
-  removeFirstBlockComment
+  removeFirstBlockComment,
+  removeFirstSingleLineComment
 }

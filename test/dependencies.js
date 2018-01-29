@@ -100,4 +100,22 @@ import 'module4'`
       expect(removeFirstBlockComment(function () {})).to.equal('')
     })
   })
+  describe('removeFirstSingleLineComment', () => {
+    const removeFirstSingleLineComment = defaults.removeFirstSingleLineComment
+    it('should remove first single line comment', () => {
+      expect(removeFirstSingleLineComment('// comment')).to.equal('')
+      expect(removeFirstSingleLineComment('// comment\n// comment')).to.equal('\n// comment')
+      expect(removeFirstSingleLineComment('// comment// comment')).to.equal('')
+      expect(removeFirstSingleLineComment('const a = 1 // comment')).to.equal('const a = 1 ')
+    })
+    it(`should return '' when input is not a string`, () => {
+      expect(removeFirstSingleLineComment(undefined)).to.equal('')
+      expect(removeFirstSingleLineComment(null)).to.equal('')
+      expect(removeFirstSingleLineComment(false)).to.equal('')
+      expect(removeFirstSingleLineComment(1)).to.equal('')
+      expect(removeFirstSingleLineComment({})).to.equal('')
+      expect(removeFirstSingleLineComment([])).to.equal('')
+      expect(removeFirstSingleLineComment(function () {})).to.equal('')
+    })
+  })
 })
