@@ -101,21 +101,102 @@ const getLicenseBlock = (txt) => {
   return result
 }
 
-const getFileImports = content => {
+/**
+ * Checks wether a given position in a string is inside a single line comment.
+ * @param {String} str The string to check within
+ * @param {Number} pos The position to check if is inside comment
+ * @returns {Boolean} Returns true if inside a comment
+ */
+const isInsideSingleComment = (str, pos) => {
+  const indexComment = str.lastIndexOf('//', pos)
+  const indexNewLine = str.lastIndexOf('\n', pos)
+  return (
+    // There is a comment in before index
+    indexComment > -1 &&
+    // There is not a newline before the comment
+    indexNewLine < indexComment
+  )
+}
+
+/**
+ * Checks wether a given position in a string is inside a block comment.
+ * @param {String} str The string to check within
+ * @param {Number} pos The position to check if is inside comment
+ * @returns {Boolean} Returns true if inside a comment
+ */
+const isInsideBlockComment = (str, pos) => {
+  const start = '/*' // Start of block comment
+  const end = '*/' // End of block comment
+  let indexStart = pos
+  let indexEnd = -1
+  let doSearch = true
+  while (doSearch) {
+    indexStart = str.lastIndexOf(start, indexStart)
+    doSearch = indexStart > -1 && isInsideSingleComment(str, indexStart)
+    if (doSearch) {
+      // Search before the last entry found
+      indexStart -= 1
+    }
+  }
+  if (indexStart > -1) {
+    doSearch = true
+    indexEnd = indexStart + start.length
+    while (doSearch) {
+      indexEnd = str.indexOf(end, indexEnd)
+      doSearch = indexEnd > -1 && isInsideSingleComment(str, indexEnd)
+    }
+  }
+  return indexStart > -1 && (indexEnd === -1 || pos < (indexEnd + end.length))
+}
+
+/**
+ * Returns a tuple with module name and export name from an import statement.
+ * @param {String} str The import statement
+ * @returns {Array} Returns a tuple ['module-name', 'export-name']
+ */
+const getImportInfo = (str) => {
+  const char = str.includes(`'`) ? `'` : `"`
+  const start = str.indexOf(char)
+  const end = str.lastIndexOf(char)
+  const moduleName = str.substring(start + 1, end)
+  const indexFrom = str.indexOf('from ' + char)
+  const exportName = (
+    (indexFrom > -1)
+    ? str.substring('import '.length, indexFrom - 1)
+    : null
+  )
+  return [moduleName, exportName]
+}
+
+/**
+ * Returns a list of tuples ['module-name', 'export-name'] from import
+ * statements.
+ * @param {String} content The string to look in for the statements.
+ * @returns {Array} List of tuples ['module-name', 'export-name'].
+ */
+const getFileImports = (content) => {
   let result = []
   if (isString(content)) {
-    // Remove all comments for simplicity.
-    let string = content.replace(expJavaScriptComment, '')
-    // Split by newline and parse import statements
-    result = string.split('\n').reduce((arr, line) => {
-      if (isImportStatement(line)) {
-        arr.push([
-          regexGetCapture(/['"]([^']+)['"]/, line), // path
-          regexGetCapture(/import (.+) from/, line) // variable
-        ])
+    let substr = content
+    const word = 'import'
+    let index = 0
+    // While there is
+    while (substr.includes(word, index)) {
+      index = substr.indexOf(word, index)
+      const isValidStatement = (
+        !isInsideSingleComment(content, index) &&
+        !isInsideBlockComment(content, index)
+      )
+      if (isValidStatement) {
+        const indexFirstChar = content.indexOf(`'`, index)
+        const indexLastChar = content.indexOf(`'`, indexFirstChar + 1)
+        const importInfo = getImportInfo(
+          content.substring(index, indexLastChar + 1)
+        )
+        result.push(importInfo)
       }
-      return arr
-    }, [])
+      index += word.length
+    }
   }
   return result
 }
@@ -374,9 +455,12 @@ module.exports = {
   compileFile,
   expJavaScriptComment,
   getFileImports,
+  getImportInfo,
   getListOfFileDependencies,
   getOrderedDependencies,
   isImportStatement,
+  isInsideBlockComment,
+  isInsideSingleComment,
   regexGetCapture,
   removeFirstBlockComment,
   removeFirstSingleLineComment
