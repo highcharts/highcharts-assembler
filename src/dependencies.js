@@ -14,7 +14,6 @@ const {
     resolve
 } = require('path')
 let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
-const expJavaScriptComment = /(\/\*[\s\S]*?(.*)\*\/)|(\/\/.*)/gm
 
 /**
  * Test if theres is a match between
@@ -35,48 +34,6 @@ const regexGetCapture = (regex, str) => regexTest(regex, str) ? regex.exec(str)[
 const isImportStatement = string => (
     isString(string) && /^import.*'.*'/.test(string)
 )
-
-/**
- * Removes the first occurence of a block comment from a given string.
- * @param {String} str The string to operate on.
- * @return {String} Returns the str minus its first block comment. Returns ''
- * if str is not of type String.
- */
-const removeFirstBlockComment = (str) => {
-  let result = ''
-  if (isString(str)) {
-    const start = str.indexOf('/*')
-    if (start > -1) {
-      const end = str.includes('*/', start + 2)
-        ? str.indexOf('*/', start + 2) + 2
-        : str.length
-      result = str.slice(0, start) + str.slice(end, str.length)
-    } else {
-      result = str
-    }
-  }
-  return result
-}
-
-/**
- * Removes the first occurence of a single line comment from a given string.
- * @param {String} str The string to operate on.
- * @return {String} Returns str minus its frist single line comment. Returns ''
- * if str is not of type String.
- */
-const removeFirstSingleLineComment = (str) => {
-  let result = ''
-  if (isString(str)) {
-    const start = str.indexOf('//')
-    if (start > -1) {
-      const end = str.includes('\n') ? str.indexOf('\n') : str.length
-      result = str.slice(0, start) + str.slice(end, str.length)
-    } else {
-      result = str
-    }
-  }
-  return result
-}
 
 const getLicenseBlock = (txt) => {
   let result = ''
@@ -454,7 +411,6 @@ const compileFile = options => {
 module.exports = {
   cleanPath,
   compileFile,
-  expJavaScriptComment,
   getFileImports,
   getImportInfo,
   getListOfFileDependencies,
@@ -462,7 +418,5 @@ module.exports = {
   isImportStatement,
   isInsideBlockComment,
   isInsideSingleComment,
-  regexGetCapture,
-  removeFirstBlockComment,
-  removeFirstSingleLineComment
+  regexGetCapture
 }

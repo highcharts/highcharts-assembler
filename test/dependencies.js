@@ -17,27 +17,6 @@ describe('dependencies.js', () => {
         .that.is.a('function')
     })
   })
-  describe('expJavaScriptComment', () => {
-    const exp = defaults.expJavaScriptComment
-    it('matches single line comments', () => {
-      const string = `var test // single line`
-      expect(string.replace(exp, '')).to.equal(`var test `)
-    })
-    it('matches single line comments, with multi line inside', () => {
-      const string = `var test // single line /* and multi line */`
-      expect(string.replace(exp, '')).to.equal(`var test `)
-    })
-    it('matches multi line comments', () => {
-      const string = `var first /* comment line
-        * comment line
-        */ var second`
-      expect(string.replace(exp, '')).to.equal(`var first  var second`)
-    })
-    it('matches multi line comments, with single line inside', () => {
-      const string = `var test /* multi line // and single line */`
-      expect(string.replace(exp, '')).to.equal(`var test `)
-    })
-  })
   describe('getFileImports', () => {
     const getFileImports = defaults.getFileImports
     it('returns empty array when input is not a string', () => {
@@ -154,47 +133,6 @@ describe('dependencies.js', () => {
     })
     it(`should return true when input is import { a } from 'module'`, () => {
       expect(isImportStatement(`import { a } from 'module'`)).to.equal(true)
-    })
-  })
-  describe('removeFirstBlockComment', () => {
-    const removeFirstBlockComment = defaults.removeFirstBlockComment
-    it('should remove first block comment', () => {
-      expect(removeFirstBlockComment('/**/')).to.equal('')
-      expect(removeFirstBlockComment('/* comment */')).to.equal('')
-      expect(removeFirstBlockComment('const a = 1 /*/ comment not closed'))
-        .to.equal('const a = 1 ')
-      expect(removeFirstBlockComment('const a = 1 /* a comment */ const b = 2'))
-        .to.equal('const a = 1  const b = 2')
-      expect(removeFirstBlockComment('/* comment1 *//* comment2 */'))
-        .to.equal('/* comment2 */')
-      expect(removeFirstBlockComment('const a = 1')).to.equal('const a = 1')
-    })
-    it(`should return '' when input is not a string`, () => {
-      expect(removeFirstBlockComment(undefined)).to.equal('')
-      expect(removeFirstBlockComment(null)).to.equal('')
-      expect(removeFirstBlockComment(false)).to.equal('')
-      expect(removeFirstBlockComment(1)).to.equal('')
-      expect(removeFirstBlockComment({})).to.equal('')
-      expect(removeFirstBlockComment([])).to.equal('')
-      expect(removeFirstBlockComment(function () {})).to.equal('')
-    })
-  })
-  describe('removeFirstSingleLineComment', () => {
-    const removeFirstSingleLineComment = defaults.removeFirstSingleLineComment
-    it('should remove first single line comment', () => {
-      expect(removeFirstSingleLineComment('// comment')).to.equal('')
-      expect(removeFirstSingleLineComment('// comment\n// comment')).to.equal('\n// comment')
-      expect(removeFirstSingleLineComment('// comment// comment')).to.equal('')
-      expect(removeFirstSingleLineComment('const a = 1 // comment')).to.equal('const a = 1 ')
-    })
-    it(`should return '' when input is not a string`, () => {
-      expect(removeFirstSingleLineComment(undefined)).to.equal('')
-      expect(removeFirstSingleLineComment(null)).to.equal('')
-      expect(removeFirstSingleLineComment(false)).to.equal('')
-      expect(removeFirstSingleLineComment(1)).to.equal('')
-      expect(removeFirstSingleLineComment({})).to.equal('')
-      expect(removeFirstSingleLineComment([])).to.equal('')
-      expect(removeFirstSingleLineComment(function () {})).to.equal('')
     })
   })
 })
