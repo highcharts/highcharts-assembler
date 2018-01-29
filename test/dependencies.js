@@ -77,4 +77,27 @@ import 'module4'`
       expect(isImportStatement(`import { a } from 'module'`)).to.equal(true)
     })
   })
+  describe('removeFirstBlockComment', () => {
+    const removeFirstBlockComment = defaults.removeFirstBlockComment
+    it('should remove first block comment', () => {
+      expect(removeFirstBlockComment('/**/')).to.equal('')
+      expect(removeFirstBlockComment('/* comment */')).to.equal('')
+      expect(removeFirstBlockComment('const a = 1 /*/ comment not closed'))
+        .to.equal('const a = 1 ')
+      expect(removeFirstBlockComment('const a = 1 /* a comment */ const b = 2'))
+        .to.equal('const a = 1  const b = 2')
+      expect(removeFirstBlockComment('/* comment1 *//* comment2 */'))
+        .to.equal('/* comment2 */')
+      expect(removeFirstBlockComment('const a = 1')).to.equal('const a = 1')
+    })
+    it(`should return '' when input is not a string`, () => {
+      expect(removeFirstBlockComment(undefined)).to.equal('')
+      expect(removeFirstBlockComment(null)).to.equal('')
+      expect(removeFirstBlockComment(false)).to.equal('')
+      expect(removeFirstBlockComment(1)).to.equal('')
+      expect(removeFirstBlockComment({})).to.equal('')
+      expect(removeFirstBlockComment([])).to.equal('')
+      expect(removeFirstBlockComment(function () {})).to.equal('')
+    })
+  })
 })

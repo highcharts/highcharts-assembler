@@ -36,6 +36,28 @@ const isImportStatement = string => (
     isString(string) && /^import.*'.*'/.test(string)
 )
 
+/**
+ * Removes the first occurence of a block comment from a given string.
+ * @param {String} str The string to operate on.
+ * @return {String} Return the str minus its first block comment. Returns ''
+ * if str is not of type String.
+ */
+const removeFirstBlockComment = (str) => {
+  let result = ''
+  if (isString(str)) {
+    const start = str.indexOf('/*')
+    if (start > -1) {
+      const end = str.includes('*/', start + 2)
+        ? str.indexOf('*/', start + 2) + 2
+        : str.length
+      result = str.slice(0, start) + str.slice(end, str.length)
+    } else {
+      result = str
+    }
+  }
+  return result
+}
+
 const getLicenseBlock = (txt) => {
   let result = ''
   const searchMiddle = '@license'
@@ -329,11 +351,12 @@ const compileFile = options => {
 
 module.exports = {
   cleanPath,
-  compileFile: compileFile,
+  compileFile,
   expJavaScriptComment,
   getFileImports,
   getListOfFileDependencies,
   getOrderedDependencies,
   isImportStatement,
-  regexGetCapture: regexGetCapture
+  regexGetCapture,
+  removeFirstBlockComment
 }
