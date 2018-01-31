@@ -17,6 +17,23 @@ describe('dependencies.js', () => {
         .that.is.a('function')
     })
   })
+  describe('getExportStatements', () => {
+    const getExportStatements = defaults.getExportStatements
+    it('should return default exports', () => {
+      expect(getExportStatements(`
+        export default Highcharts;
+      `)).to.deep.equal(['export default Highcharts'])
+      expect(getExportStatements(`
+        export default Highcharts
+        const a = 1;
+      `)).to.deep.equal(['export default Highcharts'])
+      expect(getExportStatements(`
+        export default Highcharts
+      `)).to.deep.equal(['export default Highcharts'])
+      expect(getExportStatements(`export default Highcharts;`))
+        .to.deep.equal(['export default Highcharts'])
+    })
+  })
   describe('getFileImports', () => {
     const getFileImports = defaults.getFileImports
     it('returns empty array when input is not a string', () => {
@@ -133,6 +150,64 @@ describe('dependencies.js', () => {
     })
     it(`should return true when input is import { a } from 'module'`, () => {
       expect(isImportStatement(`import { a } from 'module'`)).to.equal(true)
+    })
+  })
+  describe('removeStatement', () => {
+    const removeStatement = defaults.removeStatement
+    it('should remove semi-colon', () => {
+      expect(removeStatement('const a = 1;', 'const a = 1')).to.equal('')
+    })
+    it('should remove line ending after', () => {
+      expect(removeStatement('const a = 1;\n', 'const a = 1')).to.equal('')
+    })
+    it('should only remove the line ending after', () => {
+      expect(removeStatement('\nconst a = 1;\n', 'const a = 1')).to.equal('\n')
+    })
+    it('should preserve indentation when there is multiple statements on the same line', () => {
+      expect(removeStatement('  const a = 1; const b = 2;\n  const c = 3', 'const a = 1'))
+        .to.equal('  const b = 2;\n  const c = 3')
+      expect(removeStatement('  const a = 1; const b = 2;\n  const c = 3', 'const b = 2'))
+        .to.equal('  const a = 1;\n  const c = 3')
+    })
+    it('should preserve space when removing a statement in the middle', () => {
+      expect(removeStatement('const a = 1; const b = 2; const c = 3;', 'const b = 2'))
+        .to.equal('const a = 1; const c = 3;')
+    })
+    it('should remove statements without the need of a semicolon', () => {
+      expect(removeStatement('  const a = 1\n  const b = 2', 'const a = 1'))
+        .to.equal('  const b = 2')
+    })
+    it('should remove line ending before when there is none after', () => {
+      expect(removeStatement('\nconst a = 1;', 'const a = 1')).to.equal('')
+      expect(removeStatement('  const a = 1\n  const b = 2;', 'const b = 2'))
+        .to.equal('  const a = 1')
+    })
+  })
+  describe('removeStatements', () => {
+    const removeStatements = defaults.removeStatements
+    const str = `
+      const a = 1;
+      const b = 2; const c = 3;
+      const d = 4
+      const e = 5`
+    it('should remove given statements', () => {
+      expect(removeStatements(str, ['const a = 1'])).to.equal(`
+      const b = 2; const c = 3;
+      const d = 4
+      const e = 5`
+      )
+    })
+    it('should remove multiple statements', () => {
+      expect(removeStatements(str, ['const a = 1', 'const d = 4'])).to.equal(`
+      const b = 2; const c = 3;
+      const e = 5`
+      )
+    })
+    it('should return false when str is not a String', () => {
+      expect(removeStatements(undefined, ['const a = 1', 'const d = 4'])).to.equal(false)
+    })
+    it('should return str when statements is not an Array', () => {
+      expect(removeStatements(str)).to.equal(str)
     })
   })
 })

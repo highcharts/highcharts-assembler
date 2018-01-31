@@ -279,6 +279,103 @@ const removeLicenseHeader = content => {
   )
 }
 
+const removeStatement = (str, statement) => {
+  let result
+  let start = str.indexOf(statement)
+  let end = start + statement.length
+  // Remove following semi colon
+  if (str[end] === ';') {
+    end += 1
+  }
+  // Check wether there is multiple statements on the same line.
+  const isLineEndAfter = str.indexOf('\n', end) > -1
+  const lineEndAfter = (
+    isLineEndAfter
+    ? str.indexOf('\n', end) + 1
+    : str.length
+  )
+  const lineEndBefore = (
+    str.lastIndexOf('\n', start) > -1
+    ? str.lastIndexOf('\n', start) + 1
+    : 0
+  )
+  const isEmptyAfter = str.substring(end, lineEndAfter).trim().length === 0
+  const isEmptyBefore = str.substring(lineEndBefore, start).trim().length === 0
+  if (isEmptyAfter && isEmptyBefore) {
+    start = lineEndBefore
+    // If no line ending after, then trim the line ending before
+    if (!isLineEndAfter) {
+      ['\n', '\r'].forEach((char) => {
+        if (str[start - 1] === char) {
+          start -= 1
+        }
+      })
+    }
+    end = lineEndAfter
+    result = str.substring(0, start) + str.substring(end)
+  } else if (isEmptyBefore) {
+    result = str.substring(0, start) + str.substring(end).trimLeft()
+  } else {
+    /* If the statement is in the middle of multiple statements, or at the end
+       of a line */
+    result = str.substring(0, start).trimRight() + str.substring(end)
+  }
+  return result
+}
+
+/**
+ * Removes a list of statements from a string
+ * @param {String} str The string to operate on.
+ * @param {Array} statements A list of statements to remove.
+ * @returns Returns a string without the given statements
+ */
+const removeStatements = (str, statements) => {
+  let result = false
+  if (isString(str)) {
+    if (isArray(statements)) {
+      result = statements.reduce(
+        (prev, statement) => removeStatement(prev, statement),
+        str
+      )
+    } else {
+      result = str
+    }
+  }
+  return result
+}
+
+/**
+ * Returns the export statements in a given string.
+ * @param {String} content The string to look in.
+ * @returns {Array} List of export statements.
+ */
+const getExportStatements = (content) => {
+  let result = []
+  const word = 'export default '
+  const start = content.indexOf(word)
+  if (start > -1) {
+    let endChar
+    if (!content.includes('\n', start)) {
+      endChar = ';'
+    } else if (!content.includes(';', start)) {
+      endChar = '\n'
+    } else {
+      endChar = (
+        content.indexOf('\n', start) < content.indexOf(';', start)
+        ? '\n'
+        : ';'
+      )
+    }
+    const end = (
+      content.includes(endChar, start)
+      ? content.indexOf(endChar, start)
+      : content.length
+    )
+    result.push(content.substring(start, end))
+  }
+  return result
+}
+
 /**
  * List of names for the exported variable per module.
  * @param  {[string]} dependencies Dependencies array. List of paths, ordered.
@@ -351,7 +448,8 @@ const moduleTransform = (content, options) => {
     // Remove import statements
     // @todo Add imported variables to the function arguments. Reuse getImports for this
   content = content.replace(/import\s[^\n]+\n/g, '')
-        .replace(exportExp, '') // Remove exports statements
+  const exportStatements = getExportStatements(content)
+  content = removeStatements(content, exportStatements)
   if (doExclude) {
     content = ''
   } else if (i === arr.length - 1) {
@@ -411,6 +509,7 @@ const compileFile = options => {
 module.exports = {
   cleanPath,
   compileFile,
+  getExportStatements,
   getFileImports,
   getImportInfo,
   getListOfFileDependencies,
@@ -418,5 +517,7 @@ module.exports = {
   isImportStatement,
   isInsideBlockComment,
   isInsideSingleComment,
-  regexGetCapture
+  regexGetCapture,
+  removeStatement,
+  removeStatements
 }
