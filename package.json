@@ -1,14 +1,12 @@
 {
   "name": "highcharts-assembler",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "The official bundler for Highcharts JS.",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
-  "dependencies": {
-    "js-beautify": "^1.6.14"
-  },
+  "dependencies": {},
   "devDependencies": {
     "chai": "^4.1.1",
     "husky": "^0.14.3",

@@ -8,6 +8,7 @@ const {
   getFile
 } = require('./utilities.js')
 const LE = '\n'
+const IND = '    '
 const {
     dirname,
     join,
@@ -224,31 +225,33 @@ const getOrderedDependencies = (file, parent, dependencies) => {
 
 const applyUMD = content => {
   let name = 'Highcharts'
-  return ['\'use strict\';',
+  return [
+    '\'use strict\';',
     '(function (root, factory) {',
-    'if (typeof module === \'object\' && module.exports) {',
-    'module.exports = root.document ?',
-    'factory(root) : ',
-    'factory;',
-    '} else {',
-    'root.' + name + ' = factory(root);',
-    '}',
+    IND + 'if (typeof module === \'object\' && module.exports) {',
+    IND.repeat(2) + 'module.exports = root.document ?',
+    IND.repeat(2) + 'factory(root) : ',
+    IND.repeat(2) + 'factory;',
+    IND + '} else {',
+    IND.repeat(2) + 'root.' + name + ' = factory(root);',
+    IND + '}',
     '}(typeof window !== \'undefined\' ? window : this, function (win) {',
-    content,
+    IND + content.split('\n').join('\n' + IND),
     '}));'
   ].join(LE)
 }
 
 const applyModule = content => {
-  return ['\'use strict\';',
+  return [
+    '\'use strict\';',
     '(function (factory) {',
-    'if (typeof module === \'object\' && module.exports) {',
-    'module.exports = factory;',
-    '} else {',
-    'factory(Highcharts);',
-    '}',
+    IND + 'if (typeof module === \'object\' && module.exports) {',
+    IND.repeat(2) + 'module.exports = factory;',
+    IND + '} else {',
+    IND.repeat(2) + 'factory(Highcharts);',
+    IND + '}',
     '}(function (Highcharts) {',
-    content,
+    IND + content.split('\n').join('\n' + IND),
     '}));'
   ].join(LE)
 }
@@ -450,9 +453,10 @@ const moduleTransform = (content, options) => {
     content = (exported ? 'return ' + exported : '')
   } else {
     // @notice The result variable gets the same name as the one returned by the module, but when we have more advanced modules it could probably benefit from using the filename instead.
+    const middle = content + (exported ? LE + 'return ' + exported + ';' : '')
     content = [
       (exported ? 'var ' + exported + ' = ' : '') + '(function (' + params + ') {',
-      content + (exported ? LE + 'return ' + exported + ';' : ''),
+      IND + middle.split('\n').join('\n' + IND),
       '}(' + mParams + '));'
     ].join(LE)
   }

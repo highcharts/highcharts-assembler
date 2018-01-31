@@ -27,7 +27,6 @@ const {
   resolve,
   sep
 } = require('path')
-const beautify = require('js-beautify').js_beautify
 
 /**
  * [getFilesInFolder description]
@@ -132,9 +131,6 @@ const build = userOptions => {
               if (o.transpile) {
                 file = transpile(file)
               }
-              if (o.pretty) {
-                file = beautify(file)
-              }
               writeFile(o.outputPath, file)
               debug(o.debug, [
                 'Completed ' + (i + 1) + ' of ' + arr.length,
@@ -207,9 +203,6 @@ const buildDistFromModules = (userOptions) => {
       .map((o, i, arr) => {
         return new Promise((resolve, reject) => {
           let file = compileFile(o)
-          if (o.pretty) {
-            file = beautify(file)
-          }
           resolve(file)
         })
         .then((content) => writeFilePromise(o.outputPath, content))
