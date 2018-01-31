@@ -13,7 +13,6 @@ const {
     join,
     resolve
 } = require('path')
-let exportExp = /\n?\s*export default ([^;\n]+)[\n;]+/
 
 /**
  * Test if theres is a match between
@@ -376,17 +375,15 @@ const getExportStatements = (content) => {
   return result
 }
 
-/**
- * List of names for the exported variable per module.
- * @param  {[string]} dependencies Dependencies array. List of paths, ordered.
- * @returns {[?string]}  Path of module and name of its exported variable.
- */
-const getExports = dependencies => {
-  return dependencies.map(d => {
-    let content = getFile(d)
-    let exported = regexGetCapture(exportExp, content)
-    return [d, exported]
-  })
+const getExportedVariables = (content) => {
+  const statements = getExportStatements(content)
+  // TODO support named exports.
+  // TODO support having multiple exports in the same file.
+  return (
+    isString(statements[0])
+    ? statements[0].replace('export default ', '')
+    : null
+  )
 }
 
 /**
@@ -395,23 +392,18 @@ const getExports = dependencies => {
  * @param  {[string]} exported     List of names for variables exported by a module.
  * @returns {[string, [string, string]]} List of all the module parameters and its inserted parameters
  */
-const getImports = (dependencies, exported) => {
-  return dependencies.map(d => {
-    let content = getFile(d)
-    let imports = getFileImports(content)
-    return imports.reduce((arr, t) => {
-      let path
-      let mParam
-      let param = t[1]
-      if (param) {
-                // @todo check if import is of object structure and not just default
-        path = join(dirname(d), t[0])
-        mParam = exported.find(e => e[0] === path)[1]
-        arr[1].push([param, mParam])
-      }
-      return arr
-    }, [d, []])
-  })
+const getImports = (pathModule, content, mapOfPathToExported) => {
+  let imports = getFileImports(content)
+  return imports.reduce((arr, t) => {
+    const param = t[1]
+    if (param) {
+      // TODO check if import is of object structure and not just default
+      const path = join(dirname(pathModule), t[0])
+      const mParam = mapOfPathToExported[path]
+      arr[1].push([param, mParam])
+    }
+    return arr
+  }, [pathModule, []])
 }
 
 /**
@@ -484,22 +476,24 @@ const fileTransform = (content, options) => {
 }
 
 const compileFile = options => {
-  let entry = options.entry
-  let dependencies = getOrderedDependencies(entry)
-  let exported = getExports(dependencies)
-  let imported = getImports(dependencies, exported)
-  let mapTransform = (path, i, arr) => {
-    let content = getFile(path)
-    let moduleOptions = Object.assign({}, options, {
+  const entry = options.entry
+  const dependencies = getOrderedDependencies(entry)
+  const mapOfPathToExported = {}
+  const mapTransform = (path, i, arr) => {
+    const content = getFile(path)
+    const exported = getExportedVariables(content)
+    mapOfPathToExported[path] = exported
+    const imported = getImports(path, dependencies, mapOfPathToExported)
+    const moduleOptions = Object.assign({}, options, {
       path: path,
-      imported: imported.find(val => val[0] === path)[1],
-      exported: exported.find(val => val[0] === path)[1],
+      imported: imported,
+      exported: exported,
       i: i,
       arr: arr
     })
     return moduleTransform(content, moduleOptions)
   }
-  let modules = dependencies
+  const modules = dependencies
         .map(mapTransform)
         .filter(m => m !== '')
         .join(LE)
