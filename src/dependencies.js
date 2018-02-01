@@ -8,7 +8,7 @@ const {
   getFile
 } = require('./utilities.js')
 const LE = '\n'
-const IND = '    '
+const IND = '\t'
 const {
     dirname,
     join,
@@ -230,13 +230,13 @@ const applyUMD = content => {
     '(function (root, factory) {',
     IND + 'if (typeof module === \'object\' && module.exports) {',
     IND.repeat(2) + 'module.exports = root.document ?',
-    IND.repeat(2) + 'factory(root) : ',
-    IND.repeat(2) + 'factory;',
+    IND.repeat(3) + 'factory(root) :',
+    IND.repeat(3) + 'factory;',
     IND + '} else {',
     IND.repeat(2) + 'root.' + name + ' = factory(root);',
     IND + '}',
     '}(typeof window !== \'undefined\' ? window : this, function (win) {',
-    IND + content.split('\n').join('\n' + IND),
+    indent(content, IND),
     '}));'
   ].join(LE)
 }
@@ -251,7 +251,7 @@ const applyModule = content => {
     IND.repeat(2) + 'factory(Highcharts);',
     IND + '}',
     '}(function (Highcharts) {',
-    IND + content.split('\n').join('\n' + IND),
+    indent(content, IND),
     '}));'
   ].join(LE)
 }
@@ -266,7 +266,7 @@ const applyModule = content => {
 const addLicenseHeader = (content, o) => {
   const str = getFile(o.entry)
   const header = getLicenseBlock(str)
-  return (isString(header) ? header : '') + content
+  return (isString(header) ? header + '\n' : '') + content
 }
 
 /**
@@ -409,6 +409,13 @@ const getImports = (pathModule, content, mapOfPathToExported) => {
   }, [pathModule, []])
 }
 
+const indent = (str, char) => {
+  return str
+    .split('\n')
+    .map((line, i) => ((line.trim() === '' ? '' : char) + line))
+    .join('\n')
+}
+
 /**
  * Transform a module into desired structure
  * @param  {string} content  Content of the module
@@ -453,10 +460,10 @@ const moduleTransform = (content, options) => {
     content = (exported ? 'return ' + exported : '')
   } else {
     // @notice The result variable gets the same name as the one returned by the module, but when we have more advanced modules it could probably benefit from using the filename instead.
-    const middle = content + (exported ? LE + 'return ' + exported + ';' : '')
+    let middle = content + (exported ? LE + 'return ' + exported + ';' : '')
     content = [
       (exported ? 'var ' + exported + ' = ' : '') + '(function (' + params + ') {',
-      IND + middle.split('\n').join('\n' + IND),
+      indent(middle, IND),
       '}(' + mParams + '));'
     ].join(LE)
   }
