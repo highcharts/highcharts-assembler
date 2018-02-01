@@ -3,7 +3,6 @@
 'use strict'
 const fs = require('fs')
 const {
-  debug,
   writeFile
 } = require('./utilities.js')
 
@@ -14,10 +13,12 @@ const getFunction = (body, args) => {
     f = new (Function.prototype.bind.apply(Function, a))() // eslint-disable-line no-new-func
   } catch (e) {
     writeFile('temp.js', body)
-    debug(true, ['Construction of function failed. Caused by: ' + e.message,
-      'View function body in temp.js'
-    ].join('\n'))
-    throw new Error('Exit')
+    const message = [
+      'Construction of function failed. Caused by: ' + e.message,
+      'This issue is likely caused by "super-code comments" in your source code',
+      'To debug the "super-code" please have a look at function body in temp.js'
+    ].join('\n')
+    throw new Error(message)
   }
   return f
 }
