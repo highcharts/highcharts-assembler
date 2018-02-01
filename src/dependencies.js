@@ -403,10 +403,10 @@ const getImports = (pathModule, content, mapOfPathToExported) => {
       // TODO check if import is of object structure and not just default
       const path = join(dirname(pathModule), t[0])
       const mParam = mapOfPathToExported[path]
-      arr[1].push([param, mParam])
+      arr.push([param, mParam])
     }
     return arr
-  }, [pathModule, []])
+  }, [])
 }
 
 const indent = (str, char) => {
@@ -494,7 +494,7 @@ const compileFile = options => {
     const content = getFile(path)
     const exported = getExportedVariables(content)
     mapOfPathToExported[path] = exported
-    const imported = getImports(path, dependencies, mapOfPathToExported)
+    const imported = getImports(path, content, mapOfPathToExported)
     const moduleOptions = Object.assign({}, options, {
       path: path,
       imported: imported,
