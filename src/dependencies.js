@@ -441,33 +441,37 @@ const moduleTransform = (content, options) => {
     ? exclude.includes(path)
     : regexTest(exclude, path)
   )
-  let params = imported.map(m => m[0]).join(', ')
-  let mParams = imported.map(m => m[1]).join(', ')
+  let result = ''
+  if (!doExclude) {
+    const params = imported.map(m => m[0]).join(', ')
+    const mParams = imported.map(m => m[1]).join(', ')
+    const isLastModule = i === arr.length - 1
+    const prefix = (
+      (isLastModule)
+      ? 'return '
+      // NOTICE The result variable gets the same name as the one returned by
+      // the module, but when we have more advanced modules it could probably
+      // benefit from using the filename instead.
+      : (exported ? 'var ' + exported + ' = ' : '')
+    )
     // Remove license headers from modules
-  content = removeLicenseHeader(content)
+    result = removeLicenseHeader(content)
     // Remove use strict from modules
-  content = content.replace(/'use strict';\r?\n/, '')
+    result = result.replace(/'use strict';\r?\n/, '')
     // Remove import statements
-    // @todo Add imported variables to the function arguments. Reuse getImports for this
-  content = content.replace(/import\s[^\n]+\n/g, '')
-  const exportStatements = getExportStatements(content)
-  content = removeStatements(content, exportStatements)
-  if (doExclude) {
-    content = ''
-  } else if (i === arr.length - 1) {
-    // @notice Do not remove line below. It is for when we have more advanced master files.
-    // content = (r ? 'return = ' : '') + '(function () {' + LE + content + (r ? LE + 'return ' + r + ';': '') + LE + '}());';
-    content = (exported ? 'return ' + exported : '')
-  } else {
-    // @notice The result variable gets the same name as the one returned by the module, but when we have more advanced modules it could probably benefit from using the filename instead.
-    let middle = content + (exported ? LE + 'return ' + exported + ';' : '')
-    content = [
-      (exported ? 'var ' + exported + ' = ' : '') + '(function (' + params + ') {',
-      indent(middle, IND),
+    // TODO Add imported variables to the function arguments. Reuse getImports
+    // for this
+    result = result.replace(/import\s[^\n]+\n/g, '')
+    const exportStatements = getExportStatements(result)
+    result = removeStatements(result, exportStatements)
+    const body = result + (exported ? LE + 'return ' + exported + ';' : '')
+    result = [
+      prefix + '(function (' + params + ') {',
+      indent(body, IND),
       '}(' + mParams + '));'
     ].join(LE)
   }
-  return content
+  return result
 }
 
 /**
