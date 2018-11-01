@@ -256,7 +256,7 @@ const applyModule = content => {
     IND.repeat(3) + 'return factory;',
     IND.repeat(2) + '});',
     IND + '} else {',
-    IND.repeat(2) + 'factory(Highcharts);',
+    IND.repeat(2) + 'factory(typeof Highcharts !== \'undefined\' ? Highcharts : undefined);',
     IND + '}',
     '}(function (Highcharts) {',
     indent(content, IND),
