@@ -94,7 +94,8 @@ const removeFile = path => new Promise((resolve, reject) => {
       resolve(true)
     })
   } else {
-    reject(new Error('File does not exist: ' + path))
+    // reject(new Error('File does not exist: ' + path))
+    resolve(true);
   }
 })
 
@@ -116,7 +117,8 @@ const removeDirectory = path => new Promise((resolve, reject) => {
     })
         .catch(err => reject(new Error(err.message + '\n\r' + err.stack)))
   } else {
-    reject(new Error('Directory does not exist: ' + path))
+    // reject(new Error('Directory does not exist: ' + path))
+    resolve(true);
   }
 })
 
