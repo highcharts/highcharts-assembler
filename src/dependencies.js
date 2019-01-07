@@ -250,6 +250,7 @@ const applyModule = content => {
     '\'use strict\';',
     '(function (factory) {',
     IND + 'if (typeof module === \'object\' && module.exports) {',
+    IND.repeat(2) + 'factory.default = (typeof factory.default !== \'undefined\' ? factory.default : factory);',
     IND.repeat(2) + 'module.exports = factory;',
     IND + '} else if (typeof define === \'function\' && define.amd) {',
     IND.repeat(2) + 'define(function () {',
