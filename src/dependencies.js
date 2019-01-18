@@ -8,7 +8,7 @@ const {
   getFile
 } = require('./utilities.js')
 const LE = '\n'
-const IND = '\t'
+const IND = '    ' // 4 spaces
 const {
     dirname,
     join,
