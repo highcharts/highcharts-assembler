@@ -14,6 +14,15 @@ const {
     join,
     resolve
 } = require('path')
+const { readFileSync } = require('fs')
+const templateUMDStandalone = readFileSync(
+  join(__dirname, 'templates/umd-standalone.txt'),
+  'utf8'
+)
+const templateUMDModule = readFileSync(
+  join(__dirname, 'templates/umd-module.txt'),
+  'utf8'
+)
 
 /**
  * Test if theres is a match between
@@ -223,48 +232,11 @@ const getOrderedDependencies = (file, parent, dependencies) => {
   }, dep)
 }
 
-const applyUMD = content => {
-  let name = 'Highcharts'
-  return [
-    '\'use strict\';',
-    '(function (root, factory) {',
-    IND + 'if (typeof module === \'object\' && module.exports) {',
-    IND.repeat(2) + 'factory[\'default\'] = factory;',
-    IND.repeat(2) + 'module.exports = root.document ?',
-    IND.repeat(3) + 'factory(root) :',
-    IND.repeat(3) + 'factory;',
-    IND + '} else if (typeof define === \'function\' && define.amd) {',
-    IND.repeat(2) + 'define(function () {',
-    IND.repeat(3) + 'return factory(root);',
-    IND.repeat(2) + '});',
-    IND + '} else {',
-    IND.repeat(2) + 'root.' + name + ' = factory(root);',
-    IND + '}',
-    '}(typeof window !== \'undefined\' ? window : this, function (win) {',
-    indent(content, IND),
-    '}));'
-  ].join(LE)
-}
+const applyUMD = content => templateUMDStandalone
+  .replace('@name', 'Highcharts').replace('@content', indent(content, IND))
 
-const applyModule = content => {
-  return [
-    '\'use strict\';',
-    '(function (factory) {',
-    IND + 'if (typeof module === \'object\' && module.exports) {',
-    IND.repeat(2) + 'factory[\'default\'] = factory;',
-    IND.repeat(2) + 'module.exports = factory;',
-    IND + '} else if (typeof define === \'function\' && define.amd) {',
-    IND.repeat(2) + 'define(function () {',
-    IND.repeat(3) + 'return factory;',
-    IND.repeat(2) + '});',
-    IND + '} else {',
-    IND.repeat(2) + 'factory(typeof Highcharts !== \'undefined\' ? Highcharts : undefined);',
-    IND + '}',
-    '}(function (Highcharts) {',
-    indent(content, IND),
-    '}));'
-  ].join(LE)
-}
+const applyModule = content =>
+  templateUMDModule.replace('@content', indent(content, IND))
 
 /**
  * Adds a license header to the top of a distribution file.

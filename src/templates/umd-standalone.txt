@@ -1,0 +1,17 @@
+'use strict';
+(function (root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        factory['default'] = factory;
+        module.exports = root.document ?
+            factory(root) :
+            factory;
+    } else if (typeof define === 'function' && define.amd) {
+        define(function () {
+            return factory(root);
+        });
+    } else {
+        root.@name = factory(root);
+    }
+}(typeof window !== 'undefined' ? window : this, function (win) {
+@content
+}));
