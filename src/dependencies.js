@@ -23,6 +23,10 @@ const templateUMDModule = readFileSync(
   join(__dirname, 'templates/umd-module.txt'),
   'utf8'
 )
+const templateWrapModule = readFileSync(
+  join(__dirname, 'templates/wrap-module.txt'),
+  'utf8'
+)
 
 /**
  * Test if theres is a match between
@@ -447,11 +451,11 @@ const moduleTransform = (content, options) => {
     const exportStatements = getExportStatements(result)
     result = removeStatements(result, exportStatements)
     const body = result + (exported ? LE + 'return ' + exported + ';' : '')
-    result = [
-      prefix + '(function (' + params + ') {',
-      indent(body, IND),
-      '}(' + mParams + '));'
-    ].join(LE)
+    result = templateWrapModule
+      .replace('@prefix', prefix)
+      .replace('@params', params)
+      .replace('@mParams', mParams)
+      .replace('@content', indent(body, IND))
   }
   return result
 }
