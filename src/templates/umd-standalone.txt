@@ -13,5 +13,13 @@
         root.@name = factory(root);
     }
 }(typeof window !== 'undefined' ? window : this, function (win) {
+    var _modules = {};
+    function _registerModule(obj, path, args, fn) {
+        if (!obj.hasOwnProperty(path)) {
+            obj[path] = fn.apply(null, args);
+        }
+    }
 @content
+    _modules['@path']._modules = _modules;
+    return _modules['@path'];
 }));

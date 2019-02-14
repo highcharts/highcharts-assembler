@@ -1,3 +1,3 @@
-@prefix(function (@params) {
+_registerModule(_modules, '@path', [@mParams], function (@params) {
 @content
-}(@mParams));
+});

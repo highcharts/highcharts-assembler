@@ -12,6 +12,7 @@ const IND = '    ' // 4 spaces
 const {
     dirname,
     join,
+    relative,
     resolve
 } = require('path')
 const { readFileSync } = require('fs')
@@ -27,6 +28,11 @@ const templateWrapModule = readFileSync(
   join(__dirname, 'templates/wrap-module.txt'),
   'utf8'
 )
+
+/**
+ * Avoid accidentally replacing special replacement patterns
+ */
+const safeReplace = (x) => () => x
 
 /**
  * Test if theres is a match between
@@ -236,11 +242,13 @@ const getOrderedDependencies = (file, parent, dependencies) => {
   }, dep)
 }
 
-const applyUMD = content => templateUMDStandalone
-  .replace('@name', 'Highcharts').replace('@content', indent(content, IND))
+const applyUMD = (content, path) => templateUMDStandalone
+  .replace('@name', safeReplace('Highcharts'))
+  .replace(/@path/g, safeReplace(path))
+  .replace('@content', safeReplace(indent(content, IND)))
 
 const applyModule = content =>
-  templateUMDModule.replace('@content', indent(content, IND))
+  templateUMDModule.replace('@content', safeReplace(indent(content, IND)))
 
 /**
  * Adds a license header to the top of a distribution file.
@@ -260,12 +268,8 @@ const addLicenseHeader = (content, o) => {
  * @param  {string} content Module content.
  * @returns {string} Returns module content without license header.
  */
-const removeLicenseHeader = content => {
-  return content.replace(
-    getLicenseBlock(content),
-    ''
-  )
-}
+const removeLicenseHeader = content => content
+  .replace(getLicenseBlock(content), safeReplace(''))
 
 const removeStatement = (str, statement) => {
   let result
@@ -370,7 +374,7 @@ const getExportedVariables = (content) => {
   // TODO support having multiple exports in the same file.
   return (
     isString(statements[0])
-    ? statements[0].replace('export default ', '')
+    ? statements[0].replace('export default ', safeReplace(''))
     : null
   )
 }
@@ -381,15 +385,15 @@ const getExportedVariables = (content) => {
  * @param  {[string]} exported     List of names for variables exported by a module.
  * @returns {[string, [string, string]]} List of all the module parameters and its inserted parameters
  */
-const getImports = (pathModule, content, mapOfPathToExported) => {
+const getImports = (pathModule, content) => {
   let imports = getFileImports(content)
-  return imports.reduce((arr, t) => {
-    const param = t[1]
+  return imports.reduce((arr, [path, param]) => {
     if (param) {
       // TODO check if import is of object structure and not just default
-      const path = join(dirname(pathModule), t[0])
-      const mParam = mapOfPathToExported[path]
-      arr.push([param, mParam])
+      arr.push([
+        param,
+        join(dirname(pathModule), path).split('\\').join('/')
+      ])
     }
     return arr
   }, [])
@@ -415,12 +419,11 @@ const indent = (str, char) => {
  */
 const moduleTransform = (content, options) => {
   const {
-    arr,
     exclude = [],
     exported,
-    i,
     imported,
-    path
+    path,
+    printPath
   } = options
   const doExclude = (
     isArray(exclude)
@@ -429,33 +432,26 @@ const moduleTransform = (content, options) => {
   )
   let result = ''
   if (!doExclude) {
-    const params = imported.map(m => m[0]).join(', ')
-    const mParams = imported.map(m => m[1]).join(', ')
-    const isLastModule = i === arr.length - 1
-    const prefix = (
-      (isLastModule)
-      ? 'return '
-      // NOTICE The result variable gets the same name as the one returned by
-      // the module, but when we have more advanced modules it could probably
-      // benefit from using the filename instead.
-      : (exported ? 'var ' + exported + ' = ' : '')
-    )
     // Remove license headers from modules
     result = removeLicenseHeader(content)
     // Remove use strict from modules
-    result = result.replace(/'use strict';\r?\n/, '')
+    result = result.replace(/'use strict';\r?\n/, safeReplace(''))
     // Remove import statements
     // TODO Add imported variables to the function arguments. Reuse getImports
     // for this
-    result = result.replace(/import\s[^\n]+\n/g, '')
+    result = result.replace(/import\s[^\n]+\n/g, safeReplace(''))
     const exportStatements = getExportStatements(result)
     result = removeStatements(result, exportStatements)
     const body = result + (exported ? LE + 'return ' + exported + ';' : '')
+
+    const params = imported.map(m => m[0]).join(', ')
+    const mParams = imported.map(m => `_modules['${m[1]}']`).join(', ')
+
     result = templateWrapModule
-      .replace('@prefix', prefix)
-      .replace('@params', params)
-      .replace('@mParams', mParams)
-      .replace('@content', indent(body, IND))
+      .replace('@path', safeReplace(printPath))
+      .replace('@params', safeReplace(params))
+      .replace('@mParams', safeReplace(mParams))
+      .replace('@content', safeReplace(indent(body, IND)))
   }
   return result
 }
@@ -467,32 +463,31 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  let umd = options.umd
-  let result = umd ? applyUMD(content) : applyModule(content)
+  const { umd, printPath, product, version, date } = options
+  let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, options)
-  result = result.replace(/@product.name@/g, options.product)
-        .replace(/@product.version@/g, options.version)
-        .replace(/@product.date@/g, options.date)
   return result
+        .replace(/@product.name@/g, safeReplace(product))
+        .replace(/@product.version@/g, safeReplace(version))
+        .replace(/@product.date@/g, safeReplace(date))
 }
 
 const compileFile = options => {
   const entry = options.entry
   const dependencies = getOrderedDependencies(entry)
-  const mapOfPathToExported = {}
-  const mapTransform = (path, i, arr) => {
+  options.printPath = relative(join(options.base, '../'), entry)
+    .split('\\').join('/')
+  const mapTransform = path => {
+    const printPath = relative(join(options.base, '../'), path)
+      .split('\\').join('/')
     const content = getFile(path)
-    const exported = getExportedVariables(content)
-    mapOfPathToExported[path] = exported
-    const imported = getImports(path, content, mapOfPathToExported)
-    const moduleOptions = Object.assign({}, options, {
-      path: path,
-      imported: imported,
-      exported: exported,
-      i: i,
-      arr: arr
+    return moduleTransform(content, {
+      exclude: options.exclude,
+      exported: getExportedVariables(content),
+      imported: getImports(printPath, content),
+      path,
+      printPath
     })
-    return moduleTransform(content, moduleOptions)
   }
   const modules = dependencies
         .map(mapTransform)

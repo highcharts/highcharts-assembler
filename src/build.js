@@ -200,10 +200,11 @@ const buildDistFromModules = (userOptions) => {
       : getFilesInFolder(options.base, true)
     )
     const promises = getIndividualOptions(options)
-      .map((o, i, arr) => {
-        return new Promise((resolve, reject) => {
-          let file = compileFile(o)
-          resolve(file)
+      .map((o) => {
+        return Promise.resolve(compileFile(o))
+        .then((content) => {
+          console.log(`['${o.outputPath}', ${content.length}]`)
+          return content
         })
         .then((content) => writeFilePromise(o.outputPath, content))
         .then(() => {
