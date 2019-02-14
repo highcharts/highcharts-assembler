@@ -80,8 +80,8 @@ const getIndividualOptions = (options) => {
     delete o.fileOptions
     const types = (
       isArray(o.type)
-      ? o.type
-      : o.type === 'both' ? ['classic', 'css'] : [o.type]
+        ? o.type
+        : o.type === 'both' ? ['classic', 'css'] : [o.type]
     )
     let typeOptions = types.map(t => {
       let folder = t === 'classic' ? '' : 'js/'
@@ -114,65 +114,65 @@ const getIndividualOptions = (options) => {
  * @returns {undefined} No return value
  */
 const build = userOptions => {
-    // userOptions is an empty object by default
+  // userOptions is an empty object by default
   userOptions = isObject(userOptions) ? userOptions : {}
-    // Merge the userOptions with defaultOptions
+  // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
-    // Check if required options are set
+  // Check if required options are set
   if (options.base) {
     options.palette = (options.palette) ? options.palette : getPalette((options.jsBase ? options.jsBase : options.base + '../') + '../css/highcharts.scss')
     printPalette(options.output + 'palette.html', options.palette)
     options.date = options.date ? options.date : getDate()
     options.files = (options.files) ? options.files : getFilesInFolder(options.base, true)
     getIndividualOptions(options)
-            .forEach((o, i, arr) => {
-              let file = compileFile(o)
-              file = preProcess(file, o.build)
-              if (o.transpile) {
-                file = transpile(file)
-              }
-              writeFile(o.outputPath, file)
-              debug(o.debug, [
-                'Completed ' + (i + 1) + ' of ' + arr.length,
-                '- type: ' + o.type,
-                '- entry: ' + o.entry,
-                '- output: ' + o.outputPath
-              ].join('\n'))
-            })
+      .forEach((o, i, arr) => {
+        let file = compileFile(o)
+        file = preProcess(file, o.build)
+        if (o.transpile) {
+          file = transpile(file)
+        }
+        writeFile(o.outputPath, file)
+        debug(o.debug, [
+          'Completed ' + (i + 1) + ' of ' + arr.length,
+          '- type: ' + o.type,
+          '- entry: ' + o.entry,
+          '- output: ' + o.outputPath
+        ].join('\n'))
+      })
   } else {
     debug(true, 'Missing required option! The options \'base\' is required for the script to run')
   }
 }
 
 const buildModules = userOptions => {
-    // userOptions is an empty object by default
+  // userOptions is an empty object by default
   userOptions = isObject(userOptions) ? userOptions : {}
-    // Merge the userOptions with defaultOptions
+  // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
-    // Check if required options are set
+  // Check if required options are set
   if (options.base) {
     options.palette = (options.palette)
-    ? options.palette
-    : getPalette(
-      (
-        isString(options.pathPalette)
-        ? options.pathPalette
-        : options.base + '../css/highcharts.scss'
+      ? options.palette
+      : getPalette(
+        (
+          isString(options.pathPalette)
+            ? options.pathPalette
+            : options.base + '../css/highcharts.scss'
+        )
       )
-    )
     options.files = (
       isArray(options.files)
-      ? options.files
-      : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
+        ? options.files
+        : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
     )
     getIndividualOptions(options)
       .forEach((o) => {
         let content = getFile(o.entry)
         const outputPath = join(
-            options.output,
-            (o.type === 'css' ? 'js' : ''),
-            'es-modules',
-            o.filename
+          options.output,
+          (o.type === 'css' ? 'js' : ''),
+          'es-modules',
+          o.filename
         )
         let file = preProcess(content, o.build)
         writeFile(resolve(outputPath), file)
@@ -196,21 +196,21 @@ const buildDistFromModules = (userOptions) => {
     options.date = options.date ? options.date : getDate()
     options.files = (
       isArray(options.files)
-      ? options.files
-      : getFilesInFolder(options.base, true)
+        ? options.files
+        : getFilesInFolder(options.base, true)
     )
     const promises = getIndividualOptions(options)
       .map((o) => {
         return Promise.resolve(compileFile(o))
-        .then((content) => {
-          return content
-        })
-        .then((content) => writeFilePromise(o.outputPath, content))
-        .then(() => {
-          if (isFunction(o.cb)) {
-            o.cb(o.outputPath)
-          }
-        })
+          .then((content) => {
+            return content
+          })
+          .then((content) => writeFilePromise(o.outputPath, content))
+          .then(() => {
+            if (isFunction(o.cb)) {
+              o.cb(o.outputPath)
+            }
+          })
       })
     result = Promise.all(promises)
   } else {

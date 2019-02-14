@@ -10,10 +10,10 @@ const {
 const LE = '\n'
 const IND = '    ' // 4 spaces
 const {
-    dirname,
-    join,
-    relative,
-    resolve
+  dirname,
+  join,
+  relative,
+  resolve
 } = require('path')
 const { readFileSync } = require('fs')
 const templateUMDStandalone = readFileSync(
@@ -51,7 +51,7 @@ const regexTest = (regex, str) => (regex instanceof RegExp) && regex.test(str)
 const regexGetCapture = (regex, str) => regexTest(regex, str) ? regex.exec(str)[1] : null
 
 const isImportStatement = string => (
-    isString(string) && /^import.*'.*'/.test(string)
+  isString(string) && /^import.*'.*'/.test(string)
 )
 
 const getLicenseBlock = (txt) => {
@@ -138,8 +138,8 @@ const getImportInfo = (str) => {
   const indexFrom = str.indexOf('from ' + char)
   const exportName = (
     (indexFrom > -1)
-    ? str.substring('import '.length, indexFrom - 1)
-    : null
+      ? str.substring('import '.length, indexFrom - 1)
+      : null
   )
   return [moduleName, exportName]
 }
@@ -283,13 +283,13 @@ const removeStatement = (str, statement) => {
   const isLineEndAfter = str.indexOf('\n', end) > -1
   const lineEndAfter = (
     isLineEndAfter
-    ? str.indexOf('\n', end) + 1
-    : str.length
+      ? str.indexOf('\n', end) + 1
+      : str.length
   )
   const lineEndBefore = (
     str.lastIndexOf('\n', start) > -1
-    ? str.lastIndexOf('\n', start) + 1
-    : 0
+      ? str.lastIndexOf('\n', start) + 1
+      : 0
   )
   const isEmptyAfter = str.substring(end, lineEndAfter).trim().length === 0
   const isEmptyBefore = str.substring(lineEndBefore, start).trim().length === 0
@@ -354,14 +354,14 @@ const getExportStatements = (content) => {
     } else {
       endChar = (
         content.indexOf('\n', start) < content.indexOf(';', start)
-        ? '\n'
-        : ';'
+          ? '\n'
+          : ';'
       )
     }
     const end = (
       content.includes(endChar, start)
-      ? content.indexOf(endChar, start)
-      : content.length
+        ? content.indexOf(endChar, start)
+        : content.length
     )
     result.push(content.substring(start, end))
   }
@@ -374,8 +374,8 @@ const getExportedVariables = (content) => {
   // TODO support having multiple exports in the same file.
   return (
     isString(statements[0])
-    ? statements[0].replace('export default ', safeReplace(''))
-    : null
+      ? statements[0].replace('export default ', safeReplace(''))
+      : null
   )
 }
 
@@ -427,8 +427,8 @@ const moduleTransform = (content, options) => {
   } = options
   const doExclude = (
     isArray(exclude)
-    ? exclude.includes(path)
-    : regexTest(exclude, path)
+      ? exclude.includes(path)
+      : regexTest(exclude, path)
   )
   let result = ''
   if (!doExclude) {
@@ -467,9 +467,9 @@ const fileTransform = (content, options) => {
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, options)
   return result
-        .replace(/@product.name@/g, safeReplace(product))
-        .replace(/@product.version@/g, safeReplace(version))
-        .replace(/@product.date@/g, safeReplace(date))
+    .replace(/@product.name@/g, safeReplace(product))
+    .replace(/@product.version@/g, safeReplace(version))
+    .replace(/@product.date@/g, safeReplace(date))
 }
 
 const compileFile = options => {
@@ -490,9 +490,9 @@ const compileFile = options => {
     })
   }
   const modules = dependencies
-        .map(mapTransform)
-        .filter(m => m !== '')
-        .join(LE)
+    .map(mapTransform)
+    .filter(m => m !== '')
+    .join(LE)
   return fileTransform(modules, options)
 }
 

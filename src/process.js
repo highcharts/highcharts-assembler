@@ -36,11 +36,11 @@ const getPalette = path => {
     let val
     if (line.indexOf('$') === 0) {
       parts = line
-                .replace(' !default', '')
-                .replace(/\r/, '').split(':')
+        .replace(' !default', '')
+        .replace(/\r/, '').split(':')
       key = parts[0].trim().replace(/^\$/, '')
-                // Camelcase
-                .replace(/-([a-z0-9])/g, g => g[1].toUpperCase())
+      // Camelcase
+        .replace(/-([a-z0-9])/g, g => g[1].toUpperCase())
       val = parts[1].split(';')[0].trim()
 
       obj[key] = val
@@ -64,15 +64,15 @@ const printPalette = (path, palette) => {
     `
   let val
 
-    // Print series colors
+  // Print series colors
   html += palette.colors.split(' ').map(color => {
     return `
             <div style="float: left; background-color: ${color}; width: 10%; height: 100px"></div>
         `
   }).join('')
 
-    // Sort by color
-    /*
+  // Sort by color
+  /*
     keys.sort((a, b) => {
         return palette[a] > palette[b];
     });
@@ -98,35 +98,35 @@ const printPalette = (path, palette) => {
 
 const preProcess = (content, build) => {
   let tpl = content
-        .replace(/\r\n/g, '\n') // Windows newlines
-        .replace(/"/g, '___doublequote___') // Escape double quotes and backslashes, to be reinserted after parsing
-        .replace('/[ ,]/', '___rep3___') // Conflicts with trailing comma removal below
-        .replace('/[ ,]+/', '___rep4___') // Conflicts with trailing comma removal below
-        .replace(/\\/g, '\\\\')
-        .replace(/\n/g, '\\n') // Prepare newlines
-        .replace(/^/, 'var s = "') // Start supercode output, start first output string
-        .replace(/\/\*=\s?/g, '";\n') // Start supercode block, closes output string
-        .replace(/=\*\//g, '\ns += "')  // End of supercode block, starts output string
-        .replace(/$/, '";\nreturn s;') // End supercode output, end last output string
+    .replace(/\r\n/g, '\n') // Windows newlines
+    .replace(/"/g, '___doublequote___') // Escape double quotes and backslashes, to be reinserted after parsing
+    .replace('/[ ,]/', '___rep3___') // Conflicts with trailing comma removal below
+    .replace('/[ ,]+/', '___rep4___') // Conflicts with trailing comma removal below
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n') // Prepare newlines
+    .replace(/^/, 'var s = "') // Start supercode output, start first output string
+    .replace(/\/\*=\s?/g, '";\n') // Start supercode block, closes output string
+    .replace(/=\*\//g, '\ns += "') // End of supercode block, starts output string
+    .replace(/$/, '";\nreturn s;') // End supercode output, end last output string
 
-    // The evaluation function for the ready built supercode
+  // The evaluation function for the ready built supercode
   let supercode = getFunction(tpl, ['build'])
 
-    // Collect trailing commas left when the template engine has removed
-    // object literal properties or array items
+  // Collect trailing commas left when the template engine has removed
+  // object literal properties or array items
   tpl = supercode(build)
-        .replace(/,(\s*(\]|\}))/g, '$1')
-        .replace(/___doublequote___/g, '"')
-        .replace(/___rep3___/g, '/[ ,]/')
-        .replace(/___rep4___/g, '/[ ,]+/')
-        // Replace palette colors
-        .replace(/\$\{palette\.([a-zA-Z0-9]+)\}/g, function (match, key) {
-            // @notice Could this not be done in the supercode function?
-          if (build.palette[key]) {
-            return build.palette[key]
-          }
-          throw new Error('${palette.' + key + '} not found in SASS file')
-        })
+    .replace(/,(\s*(\]|\}))/g, '$1')
+    .replace(/___doublequote___/g, '"')
+    .replace(/___rep3___/g, '/[ ,]/')
+    .replace(/___rep4___/g, '/[ ,]+/')
+  // Replace palette colors
+    .replace(/\$\{palette\.([a-zA-Z0-9]+)\}/g, function (match, key) {
+      // @notice Could this not be done in the supercode function?
+      if (build.palette[key]) {
+        return build.palette[key]
+      }
+      throw new Error('${palette.' + key + '} not found in SASS file')
+    })
 
   return tpl
 }

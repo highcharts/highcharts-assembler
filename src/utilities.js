@@ -2,7 +2,7 @@
 /* eslint func-style: ["error", "expression"] */
 'use strict'
 const {
-    dirname
+  dirname
 } = require('path')
 const {
   mkdirSync,
@@ -31,9 +31,9 @@ const isFunction = x => (typeof x === 'function')
 
 const debug = (d, text) => {
   if (d) {
-        /* eslint-disable no-console */
+    /* eslint-disable no-console */
     console.log(text)
-        /* eslint-enable no-console */
+    /* eslint-enable no-console */
   }
 }
 
@@ -110,12 +110,12 @@ const removeDirectory = path => new Promise((resolve, reject) => {
   if (exists(path)) {
     const files = readdirSync(path)
     const promises = files.map(file => path + '/' + file)
-            .map(itemPath => (statSync(itemPath).isDirectory()) ? removeDirectory(itemPath) : removeFile(itemPath))
+      .map(itemPath => (statSync(itemPath).isDirectory()) ? removeDirectory(itemPath) : removeFile(itemPath))
     Promise.all(promises).then(() => {
       rmdirSync(path)
       resolve(true)
     })
-        .catch(err => reject(new Error(err.message + '\n\r' + err.stack)))
+      .catch(err => reject(new Error(err.message + '\n\r' + err.stack)))
   } else {
     // reject(new Error('Directory does not exist: ' + path))
     resolve(true)
