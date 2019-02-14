@@ -203,7 +203,6 @@ const buildDistFromModules = (userOptions) => {
       .map((o) => {
         return Promise.resolve(compileFile(o))
         .then((content) => {
-          console.log(`['${o.outputPath}', ${content.length}]`)
           return content
         })
         .then((content) => writeFilePromise(o.outputPath, content))
