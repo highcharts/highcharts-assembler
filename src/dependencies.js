@@ -243,7 +243,7 @@ const getOrderedDependencies = (file, parent, dependencies) => {
 }
 
 const applyUMD = (content, path) => templateUMDStandalone
-  .replace('@name', safeReplace('Highcharts'))
+  .replace(/@name/g, safeReplace('Highcharts'))
   .replace(/@path/g, safeReplace(path))
   .replace('@content', safeReplace(indent(content, IND)))
 

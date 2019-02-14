@@ -10,6 +10,9 @@
             return factory(root);
         });
     } else {
+        if (root.@name) {
+            root.@name.error(16, true);
+        }
         root.@name = factory(root);
     }
 }(typeof window !== 'undefined' ? window : this, function (win) {
