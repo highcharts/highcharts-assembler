@@ -68,6 +68,10 @@ const getDate = () => {
   return ['' + date.getFullYear(), pad('' + (date.getMonth() + 1)), pad('' + date.getDate())].join('-')
 }
 
+const getTypes = (type) => (
+  isArray(type) ? type : type === 'both' ? ['classic', 'css'] : [type]
+)
+
 /**
  * Get options foreach individual
  * @param  {object} options General options for all files
@@ -78,12 +82,8 @@ const getIndividualOptions = (options) => {
     let o = Object.assign({}, options, options.fileOptions && options.fileOptions[filename])
     o.entry = join(o.base, filename)
     delete o.fileOptions
-    const types = (
-      isArray(o.type)
-        ? o.type
-        : o.type === 'both' ? ['classic', 'css'] : [o.type]
-    )
-    let typeOptions = types.map(t => {
+    const types = getTypes(o.type)
+    const typeOptions = types.map(t => {
       let folder = t === 'classic' ? '' : 'js/'
       let build = {
         classic: {
@@ -104,6 +104,34 @@ const getIndividualOptions = (options) => {
         filename: filename
       })
     })
+    return arr.concat(typeOptions)
+  }, [])
+}
+
+const getESModuleOptions = ({ base, output, files, palette, types }) => {
+  const process = {
+    classic: {
+      assembly: true,
+      classic: true,
+      palette: palette
+    },
+    css: {
+      classic: false,
+      palette: palette
+    }
+  }
+  return files.reduce((arr, filename, i) => {
+    const entry = resolve(join(base, filename))
+    const typeOptions = types.map(type => ({
+      process: process[type],
+      entry,
+      outputPath: resolve(join(
+        output,
+        (type === 'classic' ? '' : 'js/'),
+        'es-modules',
+        filename
+      ))
+    }))
     return arr.concat(typeOptions)
   }, [])
 }
@@ -149,6 +177,10 @@ const buildModules = userOptions => {
   userOptions = isObject(userOptions) ? userOptions : {}
   // Merge the userOptions with defaultOptions
   let options = Object.assign({}, defaultOptions, userOptions)
+
+  // Make sure types is an array.
+  options.types = getTypes(options.type)
+
   // Check if required options are set
   if (options.base) {
     options.palette = (options.palette)
@@ -165,17 +197,13 @@ const buildModules = userOptions => {
         ? options.files
         : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
     )
-    getIndividualOptions(options)
-      .forEach((o) => {
-        let content = getFile(o.entry)
-        const outputPath = join(
-          options.output,
-          (o.type === 'css' ? 'js' : ''),
-          'es-modules',
-          o.filename
+    getESModuleOptions(options)
+      .forEach(({ entry, outputPath, process }) => {
+        const content = preProcess(
+          getFile(entry),
+          process
         )
-        let file = preProcess(content, o.build)
-        writeFile(resolve(outputPath), file)
+        writeFile(outputPath, content)
       })
   } else {
     debug(true, 'Missing required option! The options \'base\' is required for the script to run')
