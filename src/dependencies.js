@@ -145,38 +145,43 @@ const getImportInfo = (str) => {
 }
 
 /**
+ * Searches for a substr in a string and returns an array of all the matches.
+ *
+ * @param {string} content The string to search in.
+ * @param {string} str The start of the string to capture
+ * @param {string} strEnd The end of the string to capture
+ * @param {function} [isValid] Function to validate the capture. Defaults to a
+ * function that always returns true.
+ * @return {array} Returns an array of the the matches that is valid.
+ */
+const searchCapture = (content, str, strEnd, isValid = () => true) => {
+  let index = 0
+  const captures = []
+  while (content.includes(str, index)) {
+    index = content.indexOf(str, index)
+    if (isValid(content, index)) {
+      const indexLastChar = content.indexOf(strEnd, index + 1)
+      const capture = content.substring(index, indexLastChar + 1)
+      captures.push(capture)
+    }
+    index += str.length
+  }
+  return captures
+}
+
+/**
  * Returns a list of tuples ['module-name', 'export-name'] from import
  * statements.
  * @param {String} content The string to look in for the statements.
  * @returns {Array} List of tuples ['module-name', 'export-name'].
  */
-const getFileImports = (content) => {
-  let result = []
-  if (isString(content)) {
-    let substr = content
-    const word = 'import '
-    let index = 0
-    // While there is
-    while (substr.includes(word, index)) {
-      index = substr.indexOf(word, index)
-      const isValidStatement = (
-        !isInsideSingleComment(content, index) &&
-        !isInsideBlockComment(content, index)
-        // TODO isInsideString
-      )
-      if (isValidStatement) {
-        const indexFirstChar = content.indexOf(`'`, index)
-        const indexLastChar = content.indexOf(`'`, indexFirstChar + 1)
-        const importInfo = getImportInfo(
-          content.substring(index, indexLastChar + 1)
-        )
-        result.push(importInfo)
-      }
-      index += word.length
-    }
-  }
-  return result
-}
+const getFileImports = (content) => !isString(content)
+  ? []
+  : searchCapture(content, 'import ', '\n', (content, index) => (
+    !isInsideSingleComment(content, index) &&
+    !isInsideBlockComment(content, index)
+    // TODO isInsideString
+  )).map(getImportInfo)
 
 const getListOfFileDependencies = (pathFile) => {
   let result = false
