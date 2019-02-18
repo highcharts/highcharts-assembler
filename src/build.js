@@ -72,54 +72,71 @@ const getTypes = (type) => (
   isArray(type) ? type : type === 'both' ? ['classic', 'css'] : [type]
 )
 
+const getProcess = palette => ({
+  classic: {
+    assembly: true,
+    classic: true,
+    palette: palette
+  },
+  css: {
+    classic: false,
+    palette: palette
+  }
+})
+
 /**
  * Get options foreach individual
  * @param  {object} options General options for all files
  * @returns {[object]}       Array of indiviual file options
  */
-const getIndividualOptions = (options) => {
-  return options.files.reduce((arr, filename) => {
-    let o = Object.assign({}, options, options.fileOptions && options.fileOptions[filename])
-    o.entry = join(o.base, filename)
-    delete o.fileOptions
-    const types = getTypes(o.type)
-    const typeOptions = types.map(t => {
-      let folder = t === 'classic' ? '' : 'js/'
-      let build = {
-        classic: {
-          assembly: true,
-          classic: true,
-          palette: o.palette
-        },
-        css: {
-          classic: false,
-          palette: o.palette
-        }
-      }
-      return Object.assign({
-        build: build[t]
-      }, o, {
-        type: t,
-        outputPath: options.output + folder + filename,
-        filename: filename
-      })
+const getIndividualOptions = ({
+  base,
+  cb,
+  date,
+  exclude,
+  files,
+  fileOptions = {},
+  output,
+  palette,
+  product,
+  type,
+  umd,
+  version
+}) => {
+  const process = getProcess(palette)
+  return files.reduce((arr, filename) => {
+    const options = fileOptions[filename] || {}
+
+    // Pick exclude, product and umd from fileOptions if defined.
+    const obj = ['exclude', 'product', 'umd'].reduce((obj, key) => {
+      obj[key] = options.hasOwnProperty(key) ? options[key] : obj[key]
+      return obj
+    }, {
+      base,
+      cb,
+      date,
+      entry: resolve(join(base, filename)),
+      exclude,
+      product,
+      umd,
+      version
     })
+
+    // Create a set of options for each type
+    const typeOptions = getTypes(type).map(type => Object.assign({
+      build: process[type],
+      outputPath: resolve(
+        join(output, (type === 'classic' ? '' : 'js/'), filename)
+      )
+    }, obj))
+
+    // Add new options sets to the list
     return arr.concat(typeOptions)
   }, [])
 }
 
 const getESModuleOptions = ({ base, output, files, palette, types }) => {
-  const process = {
-    classic: {
-      assembly: true,
-      classic: true,
-      palette: palette
-    },
-    css: {
-      classic: false,
-      palette: palette
-    }
-  }
+  const process = getProcess(palette)
   return files.reduce((arr, filename, i) => {
     const entry = resolve(join(base, filename))
     const typeOptions = types.map(type => ({
@@ -228,18 +245,10 @@ const buildDistFromModules = (userOptions) => {
         : getFilesInFolder(options.base, true)
     )
     const promises = getIndividualOptions(options)
-      .map((o) => {
-        return Promise.resolve(compileFile(o))
-          .then((content) => {
-            return content
-          })
-          .then((content) => writeFilePromise(o.outputPath, content))
-          .then(() => {
-            if (isFunction(o.cb)) {
-              o.cb(o.outputPath)
-            }
-          })
-      })
+      .map((o) => Promise.resolve(compileFile(o))
+        .then((content) => writeFilePromise(o.outputPath, content))
+        .then(() => isFunction(o.cb) ? o.cb(o.outputPath) : undefined)
+      )
     result = Promise.all(promises)
   } else {
     result = Promise.reject(new Error(message.errBase))
