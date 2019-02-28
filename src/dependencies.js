@@ -183,6 +183,38 @@ const getFileImports = (content) => !isString(content)
     // TODO isInsideString
   )).map(getImportInfo)
 
+/**
+ * Find and returns the requires tags in a file.
+ * Read more about the requires tag at http://usejsdoc.org/tags-requires.html
+ *
+ * @param {string} content Contents of the file.
+ * @returns {array} Returns a list of names for the required modules.
+ */
+const getRequires = (content) => {
+  let requires = []
+  if (content) {
+    const strStart = '@requires '
+    const strEnd = '\n'
+    requires = searchCapture(content, strStart, strEnd, isInsideBlockComment)
+      .map(str => str
+        .replace(strStart, '')
+        .replace(strEnd, '')
+      )
+  }
+  return requires
+}
+
+const getExcludedFilenames = (requires, base) => requires
+  .reduce((arr, name) => {
+    const filePath = join(base, `${name.replace('highcharts/', '')}.src.js`)
+    const dependencies = exists(filePath)
+      ? getOrderedDependencies(filePath).map(str => resolve(str))
+      : []
+    return arr.concat(dependencies)
+  },
+  []
+  )
+
 const getListOfFileDependencies = (pathFile) => {
   let result = false
   if (exists(pathFile)) {
@@ -262,8 +294,8 @@ const applyModule = content =>
  * @param  {object} o Object containing all build options.
  * @returns {string} Returns the distribution file with a header.
  */
-const addLicenseHeader = (content, o) => {
-  const str = getFile(o.entry)
+const addLicenseHeader = (content, { entry }) => {
+  const str = getFile(entry)
   const header = getLicenseBlock(str)
   return (isString(header) ? header + '\n' : '') + content
 }
@@ -468,37 +500,54 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { umd, printPath, product, version, date } = options
+  const { entry, umd, printPath, product, requires, version, date } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
-  result = addLicenseHeader(result, options)
+  result = addLicenseHeader(result, { entry })
   return result
     .replace(/@product.name@/g, safeReplace(product))
     .replace(/@product.version@/g, safeReplace(version))
     .replace(/@product.date@/g, safeReplace(date))
+    .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
 }
 
 const compileFile = options => {
-  const entry = options.entry
-  const dependencies = getOrderedDependencies(entry)
-  options.printPath = relative(join(options.base, '../'), entry)
-    .split('\\').join('/')
+  // Collect values from the options object
+  const { entry, base, product, version, date } = options
+
+  // Get contents of the entry file
+  const contentEntry = getFile(entry)
+
+  /* Assign values to requires, exclude and umd, or use the value from options
+     if provided by the user */
+  const {
+    requires = getRequires(contentEntry),
+    exclude = getExcludedFilenames(requires, base),
+    umd = requires.length === 0
+  } = options
+
+  // Transform modules
   const mapTransform = path => {
-    const printPath = relative(join(options.base, '../'), path)
+    const printPath = relative(join(base, '../'), path)
       .split('\\').join('/')
     const content = getFile(path)
     return moduleTransform(content, {
-      exclude: options.exclude,
+      exclude,
       exported: getExportedVariables(content),
       imported: getImports(printPath, content),
       path,
       printPath
     })
   }
-  const modules = dependencies
+  const modules = getOrderedDependencies(entry)
     .map(mapTransform)
     .filter(m => m !== '')
     .join(LE)
-  return fileTransform(modules, options)
+
+  const printPath = relative(join(base, '../'), entry).split('\\').join('/')
+  return fileTransform(
+    modules,
+    { entry, umd, printPath, product, requires, version, date }
+  )
 }
 
 module.exports = {
@@ -509,6 +558,7 @@ module.exports = {
   getImportInfo,
   getListOfFileDependencies,
   getOrderedDependencies,
+  getRequires,
   isImportStatement,
   isInsideBlockComment,
   isInsideSingleComment,

@@ -1,7 +1,7 @@
 module.exports = {
   base: null, // Path to where the build files are located
   date: null,
-  exclude: null,
+  exclude: undefined,
   fileOptions: {},
   files: null, // Array of files to compile
   jsBase: null, // Path to where the js folder is located. Used when masters file is not in same location as the source files. @todo Refine this logic.
@@ -9,7 +9,7 @@ module.exports = {
   palette: null, // Highcharts palette
   pretty: true,
   product: 'Highcharts', // Which product we're building.
-  umd: true, // Wether to use UMD pattern or a module pattern
+  umd: undefined, // Wether to use UMD pattern or a module pattern
   version: 'x.x.x', // Version number of Highcharts
   /**
      * Transpile ES6 to ES5.

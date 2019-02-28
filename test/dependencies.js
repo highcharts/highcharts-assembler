@@ -82,6 +82,53 @@ describe('dependencies.js', () => {
         .to.deep.equal(['module-name', null])
     })
   })
+
+  describe('getRequires', () => {
+    const { getRequires } = defaults
+
+    it('should return empty array when no requires set in the file', () => {
+      const content = `
+/**
+ * Module without any requires
+ */
+import lib from 'somelib'
+`
+      expect(getRequires(content)).to.deep.equal([])
+    })
+
+    it('should return empty array when content is undefined', () => {
+      expect(getRequires()).to.deep.equal([])
+    })
+
+    it('should an array of the module names that is required', () => {
+      const content = `
+/**
+ * Module with some requirements
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ */
+import lib from 'somelib'
+`
+      expect(getRequires(content)).to.deep.equal(
+        ['highcharts', 'highcharts/modules/stock']
+      )
+    })
+
+    it('should not include requires tags that are not in a block comment', () => {
+      const content = `
+/**
+ * Module with some requirements
+ * @requires highcharts
+ */
+// @requires highcharts/not-valid
+import lib from 'somelib'
+`
+      expect(getRequires(content)).to.deep.equal(
+        ['highcharts']
+      )
+    })
+  })
+
   describe('isInsideSingleComment', () => {
     const isInsideSingleComment = defaults.isInsideSingleComment
     it('should return true if is index is inside a comment', () => {

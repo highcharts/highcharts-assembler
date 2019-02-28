@@ -18,7 +18,7 @@ describe('defaultOptions.js', () => {
       expect(defaults).to.have.property('date', null)
     })
     it('has a property exclude', () => {
-      expect(defaults).to.have.property('exclude', null)
+      expect(defaults).to.have.property('exclude', undefined)
     })
     it('has a property fileOptions', () => {
       expect(defaults).to.have.property('fileOptions')
@@ -43,7 +43,7 @@ describe('defaultOptions.js', () => {
       expect(defaults).to.have.property('product', 'Highcharts')
     })
     it('has a property umd', () => {
-      expect(defaults).to.have.property('umd', true)
+      expect(defaults).to.have.property('umd', undefined)
     })
     it('has a property version', () => {
       expect(defaults).to.have.property('version', 'x.x.x')
