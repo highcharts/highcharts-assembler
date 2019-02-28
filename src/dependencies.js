@@ -157,10 +157,16 @@ const getImportInfo = (str) => {
 const searchCapture = (content, str, strEnd, isValid = () => true) => {
   let index = 0
   const captures = []
+  const ends = isArray(strEnd) ? strEnd : [strEnd]
   while (content.includes(str, index)) {
     index = content.indexOf(str, index)
     if (isValid(content, index)) {
-      const indexLastChar = content.indexOf(strEnd, index + 1)
+      const indexLastChar = ends
+        .map(char => content.indexOf(char, index + str.length))
+        .reduce(
+          (min, num) => (num > -1 ? Math.min(min, num) : min),
+          Number.MAX_SAFE_INTEGER
+        )
       const capture = content.substring(index, indexLastChar + 1)
       captures.push(capture)
     }
@@ -202,6 +208,29 @@ const getRequires = (content) => {
       )
   }
   return requires
+}
+
+/**
+ * Find and returns the first module tag in a file, or undefined if no module
+ * tag was provided.
+ * Read more about the module tag at http://usejsdoc.org/tags-module.html
+ *
+ * @param {string} content Contents of the file.
+ * @returns {string|undefined} Returns the first module tag that is found,
+ * undefined if none are found.
+ */
+const getModuleName = (content) => {
+  const strStart = '@module '
+  const strEnd = ['\n', ' '] // Ends at either a line break or a space
+  const moduleTags =
+    searchCapture(content, strStart, strEnd, isInsideBlockComment)
+      .map((str) => strEnd.reduce(
+        (str, chars) => str.replace(chars, ''),
+        str.replace(strStart, '')
+      ))
+
+  // Return the first module name found, or undefined.
+  return moduleTags.length ? moduleTags[0] : undefined
 }
 
 const getExcludedFilenames = (requires, base) => requires
@@ -500,10 +529,11 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { entry, umd, printPath, product, requires, version, date } = options
+  const { entry, moduleName, umd, printPath, product, requires, version, date } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, { entry })
   return result
+    .replace('@moduleName', moduleName ? `'${moduleName}', ` : '')
     .replace(/@product.name@/g, safeReplace(product))
     .replace(/@product.version@/g, safeReplace(version))
     .replace(/@product.date@/g, safeReplace(date))
@@ -522,7 +552,8 @@ const compileFile = options => {
   const {
     requires = getRequires(contentEntry),
     exclude = getExcludedFilenames(requires, base),
-    umd = requires.length === 0
+    umd = requires.length === 0,
+    moduleName = getModuleName(contentEntry)
   } = options
 
   // Transform modules
@@ -546,7 +577,7 @@ const compileFile = options => {
   const printPath = relative(join(base, '../'), entry).split('\\').join('/')
   return fileTransform(
     modules,
-    { entry, umd, printPath, product, requires, version, date }
+    { entry, moduleName, umd, printPath, product, requires, version, date }
   )
 }
 
@@ -557,6 +588,7 @@ module.exports = {
   getFileImports,
   getImportInfo,
   getListOfFileDependencies,
+  getModuleName,
   getOrderedDependencies,
   getRequires,
   isImportStatement,

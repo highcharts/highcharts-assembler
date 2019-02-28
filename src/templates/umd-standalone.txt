@@ -6,7 +6,7 @@
             factory(root) :
             factory;
     } else if (typeof define === 'function' && define.amd) {
-        define(function () {
+        define(@moduleNamefunction () {
             return factory(root);
         });
     } else {

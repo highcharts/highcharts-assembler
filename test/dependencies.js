@@ -83,6 +83,36 @@ describe('dependencies.js', () => {
     })
   })
 
+  describe.only('getModuleName', () => {
+    const { getModuleName } = defaults
+
+    it('should return undefined if no module tags are found', () => {
+      expect(getModuleName('')).to.equal(undefined)
+    })
+
+    it('should not allow module tags that are not in a block comment', () => {
+      expect(getModuleName('// @module myModule ')).to.equal(undefined)
+    })
+
+    it('should return the module name', () => {
+      expect(getModuleName('/* @module myModule */')).to.equal('myModule')
+    })
+
+    it('should return the first valid module name if multiple are provided', () => {
+      expect(getModuleName('// @module invalidModule \n/* @module myModule1 */ /* @module myModule2 */'))
+        .to.equal('myModule1')
+    })
+
+    it('should support block comment spanning multiple lines', () => {
+      const content = `
+/**
+ * @module myModule
+ */
+`
+      expect(getModuleName(content)).to.equal('myModule')
+    })
+  })
+
   describe('getRequires', () => {
     const { getRequires } = defaults
 
