@@ -83,7 +83,7 @@ describe('dependencies.js', () => {
     })
   })
 
-  describe.only('getModuleName', () => {
+  describe('getModuleName', () => {
     const { getModuleName } = defaults
 
     it('should return undefined if no module tags are found', () => {

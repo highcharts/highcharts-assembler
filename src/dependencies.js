@@ -537,6 +537,11 @@ const fileTransform = (content, options) => {
     .replace(/@product.name@/g, safeReplace(product))
     .replace(/@product.version@/g, safeReplace(version))
     .replace(/@product.date@/g, safeReplace(date))
+    .replace('@AMDParams', requires.length ? 'Highcharts' : '')
+    .replace('@AMDFactory', requires.length
+      ? '\n' + indent('factory(Highcharts);\nfactory.Highcharts = Highcharts;', IND.repeat(3))
+      : ''
+    )
     .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
 }
 

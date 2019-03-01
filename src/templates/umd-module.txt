@@ -4,7 +4,7 @@
         factory['default'] = factory;
         module.exports = factory;
     } else if (typeof define === 'function' && define.amd) {
-        define(@moduleName['@dependencies'], function () {
+        define(@moduleName['@dependencies'], function (@AMDParams) {@AMDFactory
             return factory;
         });
     } else {
