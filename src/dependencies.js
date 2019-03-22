@@ -325,7 +325,14 @@ const applyModule = content =>
  */
 const addLicenseHeader = (content, { entry }) => {
   const str = getFile(entry)
-  const header = getLicenseBlock(str)
+  let header = getLicenseBlock(str)
+  if (header) {
+    header = [' * @module', ' * @requires']
+      // Find tags in header
+      .reduce((arr, str) => arr.concat(searchCapture(header, str, '\n')), [])
+      // Remove found tags from header
+      .reduce((header, tag) => header.replace(tag, safeReplace('')), header)
+  }
   return (isString(header) ? header + '\n' : '') + content
 }
 
