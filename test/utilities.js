@@ -1,10 +1,16 @@
 'use strict'
 const {
+  after,
+  before,
   describe,
   it
 } = require('mocha')
 const expect = require('chai').expect
 const defaults = require('../src/utilities.js')
+const {
+  rmdirSync,
+  statSync
+} = require('fs')
 
 describe('utilities.js', () => {
   describe('exported properties', () => {
@@ -36,6 +42,44 @@ describe('utilities.js', () => {
       expect(exportedProperties).to.deep.equal(functions)
     })
   })
+
+  describe.only('createDirectory', () => {
+    const { createDirectory } = defaults
+    const windowsPath = 'tmp\\test-windows'
+    const posixPath = 'tmp/test-posix'
+    const exists = path => {
+      let exists = true
+      try {
+        statSync(path)
+      } catch (err) {
+        exists = false
+      }
+      return exists
+    }
+    const clean = () => {
+      ['tmp/test-windows', 'tmp/test-posix', 'tmp'].forEach(path => {
+        if (exists(path)) {
+          rmdirSync(path)
+        }
+      })
+    }
+
+    before(clean)
+    after(clean)
+
+    it('should support Windows paths', () => {
+      expect(exists(windowsPath.replace('\\', '/'))).to.equal(false)
+      createDirectory(windowsPath)
+      expect(exists(windowsPath.replace('\\', '/'))).to.equal(true)
+    })
+
+    it('should support Posix paths', () => {
+      expect(exists(posixPath)).to.equal(false)
+      createDirectory(posixPath)
+      expect(exists(posixPath)).to.equal(true)
+    })
+  })
+
   describe('isArray', () => {
     const isArray = defaults.isArray
     it('should return true when array', () => {

@@ -67,7 +67,7 @@ const getFile = path => {
  * @returns {undefined} Returns nothing
  */
 const createDirectory = path => {
-  const folders = path.split(/[\/\\]/g)
+  const folders = path.split(/[/\\]/g)
   folders.reduce((base, name) => {
     const p = base + name
     try {
