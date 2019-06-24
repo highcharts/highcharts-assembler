@@ -536,14 +536,11 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { entry, moduleName, umd, printPath, product, requires, version, date } = options
+  const { entry, moduleName, umd, printPath, requires } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, { entry })
   return result
     .replace('@moduleName', moduleName ? `'${moduleName}', ` : '')
-    .replace(/@product.name@/g, safeReplace(product))
-    .replace(/@product.version@/g, safeReplace(version))
-    .replace(/@product.date@/g, safeReplace(date))
     .replace('@AMDParams', requires.length ? 'Highcharts' : '')
     .replace('@AMDFactory', requires.length
       ? '\n' + indent('factory(Highcharts);\nfactory.Highcharts = Highcharts;', IND.repeat(3))
@@ -554,7 +551,7 @@ const fileTransform = (content, options) => {
 
 const compileFile = options => {
   // Collect values from the options object
-  const { entry, base, product, version, date } = options
+  const { entry, base } = options
 
   // Get contents of the entry file
   const contentEntry = getFile(entry)
@@ -589,7 +586,7 @@ const compileFile = options => {
   const printPath = relative(join(base, '../'), entry).split('\\').join('/')
   return fileTransform(
     modules,
-    { entry, moduleName, umd, printPath, product, requires, version, date }
+    { entry, moduleName, umd, printPath, requires }
   )
 }
 

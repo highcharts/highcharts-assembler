@@ -135,11 +135,14 @@ const getIndividualOptions = ({
   }, [])
 }
 
-const getESModuleOptions = ({ base, output, files, palette, types }) => {
+const getESModuleOptions = (
+  { base, date, output, files, palette, product, types, version }
+) => {
   const process = getProcess(palette)
   return files.reduce((arr, filename, i) => {
     const entry = resolve(join(base, filename))
     const typeOptions = types.map(type => ({
+      date,
       process: process[type],
       entry,
       outputPath: resolve(join(
@@ -147,7 +150,9 @@ const getESModuleOptions = ({ base, output, files, palette, types }) => {
         (type === 'classic' ? '' : 'js/'),
         'es-modules',
         filename
-      ))
+      )),
+      product,
+      version
     }))
     return arr.concat(typeOptions)
   }, [])
@@ -172,7 +177,7 @@ const build = userOptions => {
     getIndividualOptions(options)
       .forEach((o, i, arr) => {
         let file = compileFile(o)
-        file = preProcess(file, o.build)
+        file = preProcess(file, o)
         if (o.transpile) {
           file = transpile(file)
         }
@@ -209,16 +214,17 @@ const buildModules = userOptions => {
             : options.base + '../css/highcharts.scss'
         )
       )
+    options.date = options.date ? options.date : getDate()
     options.files = (
       isArray(options.files)
         ? options.files
         : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
     )
     getESModuleOptions(options)
-      .forEach(({ entry, outputPath, process }) => {
+      .forEach(({ entry, outputPath, process, date, version, product }) => {
         const content = preProcess(
           getFile(entry),
-          process
+          { build: process, date, product, version }
         )
         writeFile(outputPath, content)
       })
@@ -238,7 +244,6 @@ const buildDistFromModules = (userOptions) => {
   let options = Object.assign({}, defaultOptions, userOptions)
   // Check if required options are set
   if (options.base) {
-    options.date = options.date ? options.date : getDate()
     options.files = (
       isArray(options.files)
         ? options.files

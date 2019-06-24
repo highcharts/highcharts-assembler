@@ -96,7 +96,12 @@ const printPalette = (path, palette) => {
   writeFile(path, html)
 }
 
-const preProcess = (content, build) => {
+/**
+ * Avoid accidentally replacing special replacement patterns
+ */
+const safeReplace = (x) => () => x
+
+const preProcess = (content, { build, product, version, date }) => {
   let tpl = content
     .replace(/\r\n/g, '\n') // Windows newlines
     .replace(/"/g, '___doublequote___') // Escape double quotes and backslashes, to be reinserted after parsing
@@ -127,6 +132,11 @@ const preProcess = (content, build) => {
       }
       throw new Error('${palette.' + key + '} not found in SASS file')
     })
+
+  // Replace product tags
+  tpl = tpl.replace(/@product.name@/g, safeReplace(product))
+    .replace(/@product.version@/g, safeReplace(version))
+    .replace(/@product.date@/g, safeReplace(date))
 
   return tpl
 }
