@@ -158,6 +158,9 @@ const getESModuleOptions = (
   }, [])
 }
 
+// Prior to 2020-11-18, palette was replaced inline in supercode
+const usePaletteModule = options => fs.existsSync(join(options.base, '..', 'ts/Core/Palette.ts'));
+
 /**
  * Function which gathers all dependencies, merge options and build the final distribution file.
  * @param  {object|undefined} userOptions Build options set by the user
@@ -170,8 +173,20 @@ const build = userOptions => {
   let options = Object.assign({}, defaultOptions, userOptions)
   // Check if required options are set
   if (options.base) {
-    options.palette = (options.palette) ? options.palette : getPalette((options.jsBase ? options.jsBase : options.base + '../') + '../css/highcharts.scss')
-    printPalette(options.output + 'palette.html', options.palette)
+
+    // After refactoring, we're no longer replacing the palette in supercode
+    if (!usePaletteModule(options)) {
+      options.palette = (options.palette) ?
+        options.palette :
+        getPalette(
+          (options.jsBase ?
+            options.jsBase :
+            options.base + '../'
+          ) + '../css/highcharts.scss'
+        )
+      printPalette(options.output + 'palette.html', options.palette)
+    }
+
     options.date = options.date ? options.date : getDate()
     options.files = (options.files) ? options.files : getFilesInFolder(options.base, true)
     getIndividualOptions(options)
@@ -205,15 +220,17 @@ const buildModules = userOptions => {
 
   // Check if required options are set
   if (options.base) {
-    options.palette = (options.palette)
-      ? options.palette
-      : getPalette(
-        (
-          isString(options.pathPalette)
-            ? options.pathPalette
-            : options.base + '../css/highcharts.scss'
+    if (!usePaletteModule(options)) {
+      options.palette = (options.palette)
+        ? options.palette
+        : getPalette(
+          (
+            isString(options.pathPalette)
+              ? options.pathPalette
+              : options.base + '../css/highcharts.scss'
+          )
         )
-      )
+    }
     options.date = options.date ? options.date : getDate()
     options.files = (
       isArray(options.files)

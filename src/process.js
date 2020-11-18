@@ -123,15 +123,18 @@ const preProcess = (content, { build, product, version, date }) => {
     .replace(/,(\s*(\]|\}))/g, '$1')
     .replace(/___doublequote___/g, '"')
     .replace(/___rep3___/g, '/[ ,]/')
-    .replace(/___rep4___/g, '/[ ,]+/')
+    .replace(/___rep4___/g, '/[ ,]+/');
+
   // Replace palette colors
-    .replace(/\$\{palette\.([a-zA-Z0-9]+)\}/g, function (match, key) {
+  if (build.palette) {
+    tpl = tpl.replace(/\$\{palette\.([a-zA-Z0-9]+)\}/g, function (match, key) {
       // @notice Could this not be done in the supercode function?
       if (build.palette[key]) {
         return build.palette[key]
       }
       throw new Error('${palette.' + key + '} not found in SASS file')
     })
+  }
 
   // Replace product tags
   tpl = tpl.replace(/@product.name@/g, safeReplace(product))
