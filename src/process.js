@@ -26,6 +26,7 @@ const getFunction = (body, args) => {
 /**
  * Parse the highcharts.scss file for palette colors
  * @param {string} path Path to the style file
+ * @deprecated
  * @returns {object} Palette object
  */
 const getPalette = path => {
