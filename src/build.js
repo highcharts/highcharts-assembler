@@ -159,7 +159,13 @@ const getESModuleOptions = (
 }
 
 // Prior to 2020-11-18, palette was replaced inline in supercode
-const usePaletteModule = options => fs.existsSync(join(options.base, '..', 'ts/Core/Palette.ts'));
+const usePaletteModule = options => {
+    const filePath = [options.base, '..', 'ts', 'Core'];
+    return (
+        fs.existsSync(join(...filePath, 'Colore', 'Palette.ts')) ||
+        fs.existsSync(join(...filePath, 'Palette.ts'))
+    );
+};
 
 /**
  * Function which gathers all dependencies, merge options and build the final distribution file.
