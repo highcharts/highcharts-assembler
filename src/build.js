@@ -162,7 +162,7 @@ const getESModuleOptions = (
 const usePaletteModule = options => {
     const filePath = [options.base, '..', 'ts', 'Core'];
     return (
-        fs.existsSync(join(...filePath, 'Colore', 'Palette.ts')) ||
+        fs.existsSync(join(...filePath, 'Color', 'Palette.ts')) ||
         fs.existsSync(join(...filePath, 'Palette.ts'))
     );
 };
