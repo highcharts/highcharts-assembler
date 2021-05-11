@@ -124,7 +124,7 @@ const preProcess = (content, { build, product, version, date }) => {
     .replace(/,(\s*(\]|\}))/g, '$1')
     .replace(/___doublequote___/g, '"')
     .replace(/___rep3___/g, '/[ ,]/')
-    .replace(/___rep4___/g, '/[ ,]+/');
+    .replace(/___rep4___/g, '/[ ,]+/')
 
   // Replace palette colors
   if (build.palette) {

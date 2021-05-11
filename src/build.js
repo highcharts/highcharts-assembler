@@ -160,12 +160,12 @@ const getESModuleOptions = (
 
 // Prior to 2020-11-18, palette was replaced inline in supercode
 const usePaletteModule = options => {
-    const filePath = [options.base, '..', 'ts', 'Core'];
-    return (
-        fs.existsSync(join(...filePath, 'Color', 'Palette.ts')) ||
+  const filePath = [options.base, '..', 'ts', 'Core']
+  return (
+    fs.existsSync(join(...filePath, 'Color', 'Palette.ts')) ||
         fs.existsSync(join(...filePath, 'Palette.ts'))
-    );
-};
+  )
+}
 
 /**
  * Function which gathers all dependencies, merge options and build the final distribution file.
@@ -179,15 +179,14 @@ const build = userOptions => {
   let options = Object.assign({}, defaultOptions, userOptions)
   // Check if required options are set
   if (options.base) {
-
     // After refactoring, we're no longer replacing the palette in supercode
     if (!usePaletteModule(options)) {
-      options.palette = (options.palette) ?
-        options.palette :
-        getPalette(
-          (options.jsBase ?
-            options.jsBase :
-            options.base + '../'
+      options.palette = (options.palette)
+        ? options.palette
+        : getPalette(
+          (options.jsBase
+            ? options.jsBase
+            : options.base + '../'
           ) + '../css/highcharts.scss'
         )
       printPalette(options.output + 'palette.html', options.palette)
