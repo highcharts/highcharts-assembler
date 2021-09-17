@@ -15,7 +15,7 @@
         }
         root.@name = factory(root);
     }
-}(typeof window !== 'undefined' ? window : this, function (win) {
+}(typeof window !== 'undefined' ? window : this, function (window) {
     var _modules = {};
     function _registerModule(obj, path, args, fn) {
         if (!obj.hasOwnProperty(path)) {
