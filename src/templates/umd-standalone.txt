@@ -1,4 +1,3 @@
-'use strict';
 (function (root, factory) {
     if (typeof module === 'object' && module.exports) {
         factory['default'] = factory;
@@ -16,6 +15,7 @@
         root.@name = factory(root);
     }
 }(typeof window !== 'undefined' ? window : this, function (window) {
+    'use strict';
     var _modules = {};
     function _registerModule(obj, path, args, fn) {
         if (!obj.hasOwnProperty(path)) {
