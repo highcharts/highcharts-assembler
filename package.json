@@ -1,6 +1,6 @@
 {
   "name": "highcharts-assembler",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "The official bundler for Highcharts JS.",
   "main": "index.js",
   "directories": {
