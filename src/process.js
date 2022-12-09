@@ -24,30 +24,58 @@ const getFunction = (body, args) => {
 }
 
 /**
- * Parse the highcharts.scss file for palette colors
+ * Parse the highcharts.css file for palette colors. This is only used for
+ * replacing palette references in the doclets, not the code itself.
  * @param {string} path Path to the style file
- * @deprecated
  * @returns {object} Palette object
  */
 const getPalette = path => {
-  let lines = fs.readFileSync(path, 'utf8')
-  return lines.split('\n').reduce((obj, line) => {
-    let parts
-    let key
-    let val
-    if (line.indexOf('$') === 0) {
-      parts = line
-        .replace(' !default', '')
-        .replace(/\r/, '').split(':')
-      key = parts[0].trim().replace(/^\$/, '')
-      // Camelcase
-        .replace(/-([a-z0-9])/g, g => g[1].toUpperCase())
-      val = parts[1].split(';')[0].trim()
+  try {
+    const css = fs.readFileSync(path, 'utf8');
 
-      obj[key] = val
-    }
-    return obj
-  }, {})
+    const palette = css.split('\n').reduce((obj, line) => {
+      if (line.trim().indexOf('--') === 0) {
+        const parts = line
+            .replace(/\r/u, '')
+            .split(':'),
+          key = parts[0].trim()
+            .replace(/^--highcharts-/u, '')
+            // Camelcase
+            .replace(/-([a-z0-9])/gu, g => g[1].toUpperCase()),
+          val = parts[1].split(';')[0].trim();
+
+        if (/^#[a-f0-9]{6}/u.test(val)) {
+          obj[key] = val;
+        }
+      }
+      return obj;
+    }, {});
+
+    return palette;
+
+  // Legacy, prior to v11 the source of the palette was highcharts.scss
+  } catch (e) {
+    path = path.replace('.css', '.scss');
+    let lines = fs.readFileSync(path, 'utf8')
+    return lines.split('\n').reduce((obj, line) => {
+      let parts
+      let key
+      let val
+      if (line.indexOf('$') === 0) {
+        parts = line
+          .replace(' !default', '')
+          .replace(/\r/, '').split(':')
+        key = parts[0].trim().replace(/^\$/, '')
+        // Camelcase
+          .replace(/-([a-z0-9])/g, g => g[1].toUpperCase())
+        val = parts[1].split(';')[0].trim()
+
+        obj[key] = val
+      }
+      return obj
+    }, {})
+  }
+
 }
 
 /**
@@ -126,7 +154,7 @@ const preProcess = (content, { build, product, version, date }) => {
     .replace(/___rep3___/g, '/[ ,]/')
     .replace(/___rep4___/g, '/[ ,]+/')
 
-  // Replace palette colors
+  // Replace palette colors in doclets
   if (build.palette) {
     tpl = tpl.replace(/\$\{palette\.([a-zA-Z0-9]+)\}/g, function (match, key) {
       // @notice Could this not be done in the supercode function?

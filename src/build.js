@@ -232,7 +232,7 @@ const buildModules = userOptions => {
           (
             isString(options.pathPalette)
               ? options.pathPalette
-              : options.base + '../css/highcharts.scss'
+              : options.base + '../css/highcharts.css'
           )
         )
     }
