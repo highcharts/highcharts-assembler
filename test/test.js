@@ -3,7 +3,6 @@ require('./build.js')
 require('./defaultOptions.js')
 require('./dependencies.js')
 require('./process.js')
-require('./utilities.js')
 const {
   describe,
   it
