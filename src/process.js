@@ -93,12 +93,14 @@ const printPalette = (path, palette) => {
     `
   let val
 
-  // Print series colors
-  html += palette.colors.split(' ').map(color => {
-    return `
-            <div style="float: left; background-color: ${color}; width: 10%; height: 100px"></div>
-        `
-  }).join('')
+  if(palette.colors) {
+      // Print series colors
+      html += palette.colors.split(' ').map(color => {
+        return `
+                <div style="float: left; background-color: ${color}; width: 10%; height: 100px"></div>
+            `
+      }).join('')
+  }
 
   // Sort by color
   /*
