@@ -187,7 +187,7 @@ const build = userOptions => {
           (options.jsBase
             ? options.jsBase
             : options.base + '../'
-          ) + '../css/highcharts.scss'
+          ) + '../css/highcharts.css'
         )
       printPalette(options.output + 'palette.html', options.palette)
     }
