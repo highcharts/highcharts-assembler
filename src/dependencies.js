@@ -309,12 +309,11 @@ const getOrderedDependencies = (file, parent, dependencies) => {
 }
 
 const applyUMD = (content, path) => templateUMDStandalone
-  .replace(/@name/g, safeReplace('Highcharts'))
   .replace(/@path/g, safeReplace(path))
   .replace('@content', safeReplace(indent(content, IND)))
 
-const applyModule = content =>
-  templateUMDModule.replace('@content', safeReplace(indent(content, IND)))
+const applyModule = content => templateUMDModule
+  .replace('@content', safeReplace(indent(content, IND)))
 
 /**
  * Adds a license header to the top of a distribution file.
@@ -536,16 +535,18 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { entry, moduleName, umd, printPath, requires } = options
+  const { entry, moduleName, printPath, product, requires, umd } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, { entry })
   return result
+    .replace('@moduleEvent', `'${product}ModuleLoaded'`)
     .replace('@moduleName', moduleName ? `'${moduleName}', ` : '')
-    .replace('@AMDParams', requires.length ? 'Highcharts' : '')
+    .replace('@AMDParams', requires.length ? product : '')
     .replace('@AMDFactory', requires.length
-      ? '\n' + indent('factory(Highcharts);\nfactory.Highcharts = Highcharts;', IND.repeat(3))
+      ? '\n' + indent(`factory(${product});\nfactory.${product} = ${product};`, IND.repeat(3))
       : ''
     )
+    .replace(/@name/g, product)
     .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
 }
 
@@ -562,7 +563,8 @@ const compileFile = options => {
     requires = getRequires(contentEntry),
     exclude = getExcludedFilenames(requires, base),
     umd = requires.length === 0,
-    moduleName = getModuleName(contentEntry)
+    moduleName = getModuleName(contentEntry),
+    product = 'Highcharts'
   } = options
 
   // Transform modules
@@ -586,7 +588,7 @@ const compileFile = options => {
   const printPath = relative(join(base, '../'), entry).split('\\').join('/')
   return fileTransform(
     modules,
-    { entry, moduleName, umd, printPath, requires }
+    { entry, moduleName, printPath, product, requires, umd }
   )
 }
 

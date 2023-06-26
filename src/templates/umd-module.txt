@@ -7,11 +7,11 @@
             return factory;
         });
     } else {
-        factory(typeof Highcharts !== 'undefined' ? Highcharts : undefined);
+        factory(typeof @name !== 'undefined' ? @name : undefined);
     }
-}(function (Highcharts) {
+}(function (@name) {
     'use strict';
-    var _modules = Highcharts ? Highcharts._modules : {};
+    var _modules = @name ? @name._modules : {};
     function _registerModule(obj, path, args, fn) {
         if (!obj.hasOwnProperty(path)) {
             obj[path] = fn.apply(null, args);
@@ -19,7 +19,7 @@
             if (typeof CustomEvent === 'function') {
                 window.dispatchEvent(
                     new CustomEvent(
-                        'HighchartsModuleLoaded',
+                        @moduleEvent,
                         { detail: { path: path, module: obj[path] }
                     })
                 );
