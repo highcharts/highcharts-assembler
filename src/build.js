@@ -96,6 +96,7 @@ const getIndividualOptions = ({
   exclude,
   files,
   fileOptions = {},
+  namespace,
   output,
   palette,
   product,
@@ -117,6 +118,7 @@ const getIndividualOptions = ({
       date,
       entry: resolve(join(base, filename)),
       exclude,
+      namespace,
       product,
       umd,
       version
@@ -136,7 +138,7 @@ const getIndividualOptions = ({
 }
 
 const getESModuleOptions = (
-  { base, date, output, files, palette, product, types, version }
+  { base, date, output, files, namespace, palette, product, types, version }
 ) => {
   const process = getProcess(palette)
   return files.reduce((arr, filename, i) => {
@@ -145,6 +147,7 @@ const getESModuleOptions = (
       date,
       process: process[type],
       entry,
+      namespace,
       outputPath: resolve(join(
         output,
         (type === 'classic' ? '' : 'js/'),
