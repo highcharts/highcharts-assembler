@@ -546,8 +546,8 @@ const fileTransform = (content, options) => {
       ? '\n' + indent(`factory(${namespace});\nfactory.${namespace} = ${namespace};`, IND.repeat(3))
       : ''
     )
-    .replace(/@name/g, namespace)
     .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
+    .replace(/@moduleSpace/g, namespace)
 }
 
 const compileFile = options => {

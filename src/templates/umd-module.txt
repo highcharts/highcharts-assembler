@@ -7,11 +7,11 @@
             return factory;
         });
     } else {
-        factory(typeof @name !== 'undefined' ? @name : undefined);
+        factory(typeof @moduleSpace !== 'undefined' ? @moduleSpace : undefined);
     }
-}(function (@name) {
+}(function (@moduleSpace) {
     'use strict';
-    var _modules = @name ? @name._modules : {};
+    var _modules = @moduleSpace ? @moduleSpace._modules : {};
     function _registerModule(obj, path, args, fn) {
         if (!obj.hasOwnProperty(path)) {
             obj[path] = fn.apply(null, args);
