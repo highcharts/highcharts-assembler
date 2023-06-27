@@ -535,18 +535,18 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { entry, moduleName, printPath, product, requires, umd } = options
+  const { entry, moduleName, namespace, printPath, requires, umd } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, { entry })
   return result
-    .replace('@moduleEvent', `'${product}ModuleLoaded'`)
+    .replace('@moduleEvent', `'${namespace}ModuleLoaded'`)
     .replace('@moduleName', moduleName ? `'${moduleName}', ` : '')
-    .replace('@AMDParams', requires.length ? product : '')
+    .replace('@AMDParams', requires.length ? namespace : '')
     .replace('@AMDFactory', requires.length
-      ? '\n' + indent(`factory(${product});\nfactory.${product} = ${product};`, IND.repeat(3))
+      ? '\n' + indent(`factory(${namespace});\nfactory.${namespace} = ${namespace};`, IND.repeat(3))
       : ''
     )
-    .replace(/@name/g, product)
+    .replace(/@name/g, namespace)
     .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
 }
 
@@ -562,9 +562,9 @@ const compileFile = options => {
   const {
     requires = getRequires(contentEntry),
     exclude = getExcludedFilenames(requires, base),
-    umd = requires.length === 0,
     moduleName = getModuleName(contentEntry),
-    product = 'Highcharts'
+    namespace = 'Highcharts',
+    umd = requires.length === 0
   } = options
 
   // Transform modules
@@ -588,7 +588,7 @@ const compileFile = options => {
   const printPath = relative(join(base, '../'), entry).split('\\').join('/')
   return fileTransform(
     modules,
-    { entry, moduleName, printPath, product, requires, umd }
+    { entry, moduleName, namespace, printPath, requires, umd }
   )
 }
 

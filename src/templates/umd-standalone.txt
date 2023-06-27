@@ -22,12 +22,10 @@
             obj[path] = fn.apply(null, args);
 
             if (typeof CustomEvent === 'function') {
-                window.dispatchEvent(
-                    new CustomEvent(
-                        @moduleEvent,
-                        { detail: { path: path, module: obj[path] }
-                    })
-                );
+                window.dispatchEvent(new CustomEvent(
+                    @moduleEvent,
+                    { detail: { path: path, module: obj[path] } }
+                ));
             }
         }
     }
