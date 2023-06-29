@@ -309,12 +309,11 @@ const getOrderedDependencies = (file, parent, dependencies) => {
 }
 
 const applyUMD = (content, path) => templateUMDStandalone
-  .replace(/@name/g, safeReplace('Highcharts'))
   .replace(/@path/g, safeReplace(path))
   .replace('@content', safeReplace(indent(content, IND)))
 
-const applyModule = content =>
-  templateUMDModule.replace('@content', safeReplace(indent(content, IND)))
+const applyModule = content => templateUMDModule
+  .replace('@content', safeReplace(indent(content, IND)))
 
 /**
  * Adds a license header to the top of a distribution file.
@@ -536,17 +535,19 @@ const moduleTransform = (content, options) => {
  * @returns {string}         Content of file after transformation
  */
 const fileTransform = (content, options) => {
-  const { entry, moduleName, umd, printPath, requires } = options
+  const { entry, moduleName, namespace, printPath, requires, umd } = options
   let result = umd ? applyUMD(content, printPath) : applyModule(content)
   result = addLicenseHeader(result, { entry })
   return result
+    .replace('@moduleEvent', `'${namespace}ModuleLoaded'`)
     .replace('@moduleName', moduleName ? `'${moduleName}', ` : '')
-    .replace('@AMDParams', requires.length ? 'Highcharts' : '')
+    .replace('@AMDParams', requires.length ? namespace : '')
     .replace('@AMDFactory', requires.length
-      ? '\n' + indent('factory(Highcharts);\nfactory.Highcharts = Highcharts;', IND.repeat(3))
+      ? '\n' + indent(`factory(${namespace});\nfactory.${namespace} = ${namespace};`, IND.repeat(3))
       : ''
     )
     .replace(/@dependencies/g, safeReplace(requires.join('\', \'')))
+    .replace(/@moduleSpace/g, namespace)
 }
 
 const compileFile = options => {
@@ -561,8 +562,9 @@ const compileFile = options => {
   const {
     requires = getRequires(contentEntry),
     exclude = getExcludedFilenames(requires, base),
-    umd = requires.length === 0,
-    moduleName = getModuleName(contentEntry)
+    moduleName = getModuleName(contentEntry),
+    namespace = 'Highcharts',
+    umd = requires.length === 0
   } = options
 
   // Transform modules
@@ -586,7 +588,7 @@ const compileFile = options => {
   const printPath = relative(join(base, '../'), entry).split('\\').join('/')
   return fileTransform(
     modules,
-    { entry, moduleName, umd, printPath, requires }
+    { entry, moduleName, namespace, printPath, requires, umd }
   )
 }
 
