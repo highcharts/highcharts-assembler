@@ -11,6 +11,7 @@ module.exports = {
   product: 'Highcharts', // Which product we're building.
   umd: undefined, // Wether to use UMD pattern or a module pattern
   version: 'x.x.x', // Version number of Highcharts
+  cdn: 'code.highcharts.com',
   /**
      * Transpile ES6 to ES5.
      * Do not activate without seriously considering performance first.

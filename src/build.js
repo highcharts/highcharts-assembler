@@ -102,7 +102,8 @@ const getIndividualOptions = ({
   product,
   type,
   umd,
-  version
+  version,
+  cdn
 }) => {
   const process = getProcess(palette)
   return files.reduce((arr, filename) => {
@@ -121,7 +122,8 @@ const getIndividualOptions = ({
       namespace,
       product,
       umd,
-      version
+      version,
+      cdn
     })
 
     // Create a set of options for each type
@@ -138,7 +140,7 @@ const getIndividualOptions = ({
 }
 
 const getESModuleOptions = (
-  { base, date, output, files, namespace, palette, product, types, version }
+  { base, date, output, files, namespace, palette, product, types, version, cdn }
 ) => {
   const process = getProcess(palette)
   return files.reduce((arr, filename, i) => {
@@ -155,7 +157,8 @@ const getESModuleOptions = (
         filename
       )),
       product,
-      version
+      version,
+        cdn
     }))
     return arr.concat(typeOptions)
   }, [])
@@ -246,10 +249,10 @@ const buildModules = userOptions => {
         : getFilesInFolder(options.base, true).filter(path => path.endsWith('.js'))
     )
     getESModuleOptions(options)
-      .forEach(({ entry, outputPath, process, date, version, product }) => {
+      .forEach(({ entry, outputPath, process, date, version, product, cdn }) => {
         const content = preProcess(
           getFile(entry),
-          { build: process, date, product, version }
+          { build: process, date, product, version, cdn }
         )
         writeFile(outputPath, content)
       })
