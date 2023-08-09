@@ -132,7 +132,7 @@ const printPalette = (path, palette) => {
  */
 const safeReplace = (x) => () => x
 
-const preProcess = (content, { build, product, version, date }) => {
+const preProcess = (content, { build, product, version, date, cdn }) => {
   let tpl = content
     .replace(/\r\n/g, '\n') // Windows newlines
     .replace(/"/g, '___doublequote___') // Escape double quotes and backslashes, to be reinserted after parsing
@@ -165,6 +165,11 @@ const preProcess = (content, { build, product, version, date }) => {
       }
       throw new Error('${palette.' + key + '} not found in SASS file')
     })
+  }
+
+  if(cdn !== 'code.highcharts.com'){
+    tpl = tpl.replace(/https:\/\/code.highcharts.com/g, cdn)
+      .replace(/@product.version@\//g, '')
   }
 
   // Replace product tags
