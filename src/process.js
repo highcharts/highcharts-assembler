@@ -132,7 +132,7 @@ const printPalette = (path, palette) => {
  */
 const safeReplace = (x) => () => x
 
-const preProcess = (content, { build, product, version, date, cdn }) => {
+const preProcess = (content, { build, product, version, date, assetPrefix }) => {
   let tpl = content
     .replace(/\r\n/g, '\n') // Windows newlines
     .replace(/"/g, '___doublequote___') // Escape double quotes and backslashes, to be reinserted after parsing
@@ -167,13 +167,9 @@ const preProcess = (content, { build, product, version, date, cdn }) => {
     })
   }
 
-  if(cdn !== 'code.highcharts.com'){
-    tpl = tpl.replace(/https:\/\/code.highcharts.com/g, cdn)
-      .replace(/@product.version@\//g, '')
-  }
-
   // Replace product tags
   tpl = tpl.replace(/@product.name@/g, safeReplace(product))
+    .replace(/@product.assetPrefix@/g, safeReplace(assetPrefix))
     .replace(/@product.version@/g, safeReplace(version))
     .replace(/@product.date@/g, safeReplace(date))
 
