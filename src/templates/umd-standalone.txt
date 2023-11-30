@@ -1,7 +1,7 @@
 (function (root, factory) {
     if (typeof module === 'object' && module.exports) {
         factory['default'] = factory;
-        module.exports = root.document ?
+        module.exports = (root && root.document) ?
             factory(root) :
             factory;
     } else if (typeof define === 'function' && define.amd) {
