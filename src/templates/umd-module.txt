@@ -17,7 +17,7 @@
             obj[path] = fn.apply(null, args);
 
             if (typeof CustomEvent === 'function') {
-                window.dispatchEvent(new CustomEvent(
+                @moduleSpace.win.dispatchEvent(new CustomEvent(
                     @moduleEvent,
                     { detail: { path: path, module: obj[path] } }
                 ));
