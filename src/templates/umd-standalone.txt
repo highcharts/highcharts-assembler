@@ -21,7 +21,7 @@
         if (!obj.hasOwnProperty(path)) {
             obj[path] = fn.apply(null, args);
 
-            if (typeof CustomEvent === 'function') {
+            if (window && typeof CustomEvent === 'function') {
                 window.dispatchEvent(new CustomEvent(
                     @moduleEvent,
                     { detail: { path: path, module: obj[path] } }
